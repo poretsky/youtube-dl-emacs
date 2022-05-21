@@ -53,8 +53,8 @@
   "Download queue for the youtube-dl command line program."
   :group 'external)
 
-(defcustom youtube-dl-directory "~"
-  "Directory in which to run youtube-dl."
+(defcustom youtube-dl-download-directory "~/download"
+  "Default directory for downloads."
   :group 'youtube-dl
   :type 'directory)
 
@@ -226,7 +226,7 @@ display purposes anyway."
                (default-directory
                  (if directory
                      (concat (directory-file-name directory) "/")
-                   (concat (directory-file-name youtube-dl-directory) "/")))
+                   (concat (directory-file-name youtube-dl-download-directory) "/")))
                (id (youtube-dl-item-id item))
                (slow-p (youtube-dl-item-slow-p item))
                (proc (progn
@@ -262,7 +262,7 @@ display purposes anyway."
                       (when interprogram-paste-function
                         (funcall interprogram-paste-function))))))
   (let* ((id (youtube-dl--id-from-url url))
-         (full-dir (expand-file-name (or directory "") youtube-dl-directory))
+         (full-dir (expand-file-name (or directory "") youtube-dl-download-directory))
          (item (youtube-dl-item--create :id id
                                         :failures 0
                                         :priority priority
