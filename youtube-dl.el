@@ -184,9 +184,10 @@ display purposes anyway."
 
 (defun youtube-dl--filter (proc output)
   (let* ((item (plist-get (process-plist proc) :item))
-         (progress (youtube-dl--progress output))
+         (out (replace-regexp-in-string "\033[^ ]*m" "" output))
+         (progress (youtube-dl--progress out))
          (destination (unless (youtube-dl-item-title item)
-                        (youtube-dl--destination output))))
+                        (youtube-dl--destination out))))
     ;; Append to program log.
     (let ((logged (list output)))
       (if (youtube-dl-item-log item)
