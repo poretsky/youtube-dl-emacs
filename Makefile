@@ -9,8 +9,6 @@ youtube-dl-loaddefs.el: youtube-dl.el
 		       (generated-autoload-file (expand-file-name "youtube-dl-loaddefs.el"))) \
 		   (update-file-autoloads "youtube-dl.el" t)))'
 
-youtube-dl.elc: youtube-dl.el
-
 simulate: youtube-dl.elc
 	$(EMACS) -Q -L . -l tests/youtube-dl-simulate.el
 
