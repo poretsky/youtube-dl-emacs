@@ -1,6 +1,14 @@
 .POSIX:
 EMACS = emacs
 
+all: youtube-dl-loaddefs.el youtube-dl.elc
+
+youtube-dl-loaddefs.el: youtube-dl.el
+	$(EMACS) -batch -Q --eval \
+		'(let ((make-backup-files nil) \
+		       (generated-autoload-file (expand-file-name "youtube-dl-loaddefs.el"))) \
+		   (update-file-autoloads "youtube-dl.el" t)))'
+
 youtube-dl.elc: youtube-dl.el
 
 simulate: youtube-dl.elc
