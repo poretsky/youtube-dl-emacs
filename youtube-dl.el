@@ -63,12 +63,16 @@
   :group 'youtube-dl
   :type 'string)
 
-(defcustom youtube-dl-arguments
-  '("--no-mtime" "--restrict-filenames")
-  "Arguments to be send to youtube-dl.
-Instead of --rate-limit use `youtube-dl-slow-rate'."
+(defcustom youtube-dl-omit-mtime nil
+  "Whether to omit timestamp from the `Last-modified' header
+for downloaded files."
   :group 'youtube-dl
-  :type '(repeat string))
+  :type 'boolean)
+
+(defcustom youtube-dl-restrict-filenames nil
+  "Whether to restrict downloaded file names to only ASCII characters."
+  :group 'youtube-dl
+  :type 'boolean)
 
 (defcustom youtube-dl-max-failures 8
   "Maximum number of retries for a single video."
@@ -234,12 +238,16 @@ display purposes anyway."
                        (mkdir default-directory t)
                        (apply #'start-process
                               "youtube-dl" nil youtube-dl-program "--newline"
-                              (nconc (cl-copy-list youtube-dl-arguments)
-                                     (when slow-p
-                                       `("--rate-limit" ,youtube-dl-slow-rate))
-                                     (when destination
-                                       `("--output" ,destination))
-                                     `("--" ,id))))))
+                              (nconc
+                               (when youtube-dl-omit-mtime
+                                 (list "--no-mtime"))
+                               (when youtube-dl-restrict-filenames
+                                 (list "--restrict-filenames"))
+                               (when slow-p
+                                 `("--rate-limit" ,youtube-dl-slow-rate))
+                               (when destination
+                                 `("--output" ,destination))
+                               `("--" ,id))))))
           (set-process-plist proc (list :item item))
           (set-process-sentinel proc #'youtube-dl--sentinel)
           (set-process-filter proc #'youtube-dl--filter)
