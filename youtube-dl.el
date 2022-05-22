@@ -393,18 +393,19 @@ of reversed playlists.
     (youtube-dl-list-redisplay)))
 
 (defun youtube-dl--pointed-item ()
-  "Get item under point or nil."
+  "Get item under point. Signal an error if none."
   (unless (eq (current-buffer) (youtube-dl--buffer))
     (error "The operation is not available in this buffer."))
-  (nth (1- (line-number-at-pos)) youtube-dl-items))
+  (let ((item (nth (1- (line-number-at-pos)) youtube-dl-items)))
+    (unless item
+      (error "No item at this line."))
+    item))
 
 (defun youtube-dl-list-log ()
   "Display the log of the video under point."
   (interactive)
-  (let ((item (youtube-dl--pointed-item)))
-    (when item
-      (display-buffer (youtube-dl--log-buffer item))
-      (youtube-dl--redisplay))))
+  (display-buffer (youtube-dl--log-buffer (youtube-dl--pointed-item)))
+  (youtube-dl--redisplay))
 
 (defun youtube-dl-list-kill-log ()
   "Kill the youtube-dl log buffer."
@@ -416,53 +417,45 @@ of reversed playlists.
 (defun youtube-dl-list-yank ()
   "Copy the URL of the video under point to the clipboard."
   (interactive)
-  (let ((item (youtube-dl--pointed-item)))
-    (when item
-      (let ((url (concat "https://youtu.be/" (youtube-dl-item-id item))))
-        (if (fboundp 'gui-set-selection)
-            (gui-set-selection nil url)     ; >= Emacs 25
-          (with-no-warnings
-           (x-set-selection 'PRIMARY url))) ; <= Emacs 24
-        (message "Yanked %s" url)))))
+  (let ((url (concat "https://youtu.be/" (youtube-dl-item-id (youtube-dl--pointed-item)))))
+    (if (fboundp 'gui-set-selection)
+        (gui-set-selection nil url)     ; >= Emacs 25
+      (with-no-warnings
+        (x-set-selection 'PRIMARY url))) ; <= Emacs 24
+    (message "Yanked %s" url)))
 
 (defun youtube-dl-list-kill ()
   "Remove the selected item from the queue."
   (interactive)
-  (let ((item (youtube-dl--pointed-item)))
-    (when item
-      (when (= (line-number-at-pos) (length youtube-dl-items))
-        (forward-line -1))
-      (youtube-dl--remove item)
-      (youtube-dl--run))))
+  (when (= (line-number-at-pos) (length youtube-dl-items))
+    (forward-line -1))
+  (youtube-dl--remove (youtube-dl--pointed-item))
+  (youtube-dl--run))
 
 (defun youtube-dl-list-priority-modify (delta)
   "Change priority of item under point by DELTA."
-  (let ((item (youtube-dl--pointed-item)))
-    (when item
-      (cl-incf (youtube-dl-item-priority item) delta)
-      (youtube-dl--run))))
+  (cl-incf (youtube-dl-item-priority (youtube-dl--pointed-item)) delta)
+  (youtube-dl--run))
 
 (defun youtube-dl-list-toggle-pause ()
   "Toggle pause on item under point."
   (interactive)
-  (let ((item (youtube-dl--pointed-item)))
-    (when item
-      (let ((paused-p (youtube-dl-item-paused-p item)))
-        (setf (youtube-dl-item-paused-p item) (not paused-p))
-        (youtube-dl--run)))))
+  (let* ((item (youtube-dl--pointed-item))
+         (paused-p (youtube-dl-item-paused-p item)))
+    (setf (youtube-dl-item-paused-p item) (not paused-p))
+    (youtube-dl--run)))
 
 (defun youtube-dl-list-toggle-slow (item)
   "Toggle slow mode on item under point."
   (interactive
    (list (youtube-dl--pointed-item)))
-  (when item
-    (let ((slow-p (youtube-dl-item-slow-p item)))
-      (setf (youtube-dl-item-slow-p item) (not slow-p))
-      (if (not (eq item (youtube-dl--current)))
-          (youtube-dl--redisplay)
-        ;; Offset error count and restart the process.
-        (cl-decf (youtube-dl-item-failures item))
-        (kill-process youtube-dl-process)))))
+  (let ((slow-p (youtube-dl-item-slow-p item)))
+    (setf (youtube-dl-item-slow-p item) (not slow-p))
+    (if (not (eq item (youtube-dl--current)))
+        (youtube-dl--redisplay)
+      ;; Offset error count and restart the process.
+      (cl-decf (youtube-dl-item-failures item))
+      (kill-process youtube-dl-process))))
 
 (defun youtube-dl-list-toggle-slow-all ()
   "Toggle slow mode on all items."
