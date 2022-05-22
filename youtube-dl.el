@@ -392,11 +392,16 @@ of reversed playlists.
   (when (get-buffer-window (youtube-dl--buffer))
     (youtube-dl-list-redisplay)))
 
+(defun youtube-dl--pointed-item ()
+  "Get item under point or nil."
+  (unless (eq (current-buffer) (youtube-dl--buffer))
+    (error "The operation is not available in this buffer."))
+  (nth (1- (line-number-at-pos)) youtube-dl-items))
+
 (defun youtube-dl-list-log ()
   "Display the log of the video under point."
   (interactive)
-  (let* ((n (1- (line-number-at-pos)))
-         (item (nth n youtube-dl-items)))
+  (let ((item (youtube-dl--pointed-item)))
     (when item
       (display-buffer (youtube-dl--log-buffer item))
       (youtube-dl--redisplay))))
@@ -411,8 +416,7 @@ of reversed playlists.
 (defun youtube-dl-list-yank ()
   "Copy the URL of the video under point to the clipboard."
   (interactive)
-  (let* ((n (1- (line-number-at-pos)))
-         (item (nth n youtube-dl-items)))
+  (let ((item (youtube-dl--pointed-item)))
     (when item
       (let ((url (concat "https://youtu.be/" (youtube-dl-item-id item))))
         (if (fboundp 'gui-set-selection)
@@ -424,18 +428,16 @@ of reversed playlists.
 (defun youtube-dl-list-kill ()
   "Remove the selected item from the queue."
   (interactive)
-  (let* ((n (1- (line-number-at-pos)))
-         (item (nth n youtube-dl-items)))
+  (let ((item (youtube-dl--pointed-item)))
     (when item
-      (when (= n (1- (length youtube-dl-items)))
+      (when (= (line-number-at-pos) (length youtube-dl-items))
         (forward-line -1))
       (youtube-dl--remove item)
       (youtube-dl--run))))
 
 (defun youtube-dl-list-priority-modify (delta)
   "Change priority of item under point by DELTA."
-  (let* ((n (1- (line-number-at-pos)))
-         (item (nth n youtube-dl-items)))
+  (let ((item (youtube-dl--pointed-item)))
     (when item
       (cl-incf (youtube-dl-item-priority item) delta)
       (youtube-dl--run))))
@@ -443,8 +445,7 @@ of reversed playlists.
 (defun youtube-dl-list-toggle-pause ()
   "Toggle pause on item under point."
   (interactive)
-  (let* ((n (1- (line-number-at-pos)))
-         (item (nth n youtube-dl-items)))
+  (let ((item (youtube-dl--pointed-item)))
     (when item
       (let ((paused-p (youtube-dl-item-paused-p item)))
         (setf (youtube-dl-item-paused-p item) (not paused-p))
@@ -453,8 +454,7 @@ of reversed playlists.
 (defun youtube-dl-list-toggle-slow (item)
   "Toggle slow mode on item under point."
   (interactive
-   (let* ((n (1- (line-number-at-pos))))
-     (list (nth n youtube-dl-items))))
+   (list (youtube-dl--pointed-item)))
   (when item
     (let ((slow-p (youtube-dl-item-slow-p item)))
       (setf (youtube-dl-item-slow-p item) (not slow-p))
