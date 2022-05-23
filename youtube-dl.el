@@ -384,11 +384,16 @@ of reversed playlists.
     (when log-buffer
       (with-current-buffer log-buffer
         (let ((inhibit-read-only t)
+              (save-point (point))
+              (save-max-point (point-max))
               (window (get-buffer-window log-buffer)))
           (erase-buffer)
           (mapc #'insert (youtube-dl-item-log youtube-dl--log-item))
           (when window
-            (set-window-point window (point-max)))))))
+            (set-window-point window
+                              (if (< save-point save-max-point)
+                                  save-point
+                                (point-max))))))))
   (when (get-buffer-window (youtube-dl--buffer))
     (youtube-dl-list-redisplay)))
 
