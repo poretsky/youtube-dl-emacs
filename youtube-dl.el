@@ -707,6 +707,12 @@ all other items are made slow, and vice versa."
   (youtube-dl--fill-listing)
   (pop-to-buffer (youtube-dl--buffer)))
 
+;;;###autoload
+(defun youtube-dl-customize ()
+  "Customize youtube-dl options."
+  (interactive)
+  (customize-group 'youtube-dl))
+
 (provide 'youtube-dl)
 
 ;;; youtube-dl.el ends here
