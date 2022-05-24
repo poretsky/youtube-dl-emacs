@@ -547,13 +547,28 @@ of reversed playlists.
   (cl-incf (youtube-dl-item-priority (youtube-dl--pointed-item)) delta)
   (youtube-dl--run))
 
-(defun youtube-dl-list-toggle-pause ()
+(defun youtube-dl-list-toggle-pause (item)
   "Toggle pause on item under point."
-  (interactive)
-  (let* ((item (youtube-dl--pointed-item))
-         (paused-p (youtube-dl-item-paused-p item)))
+  (interactive
+   (list (youtube-dl--pointed-item)))
+  (let ((paused-p (youtube-dl-item-paused-p item)))
     (setf (youtube-dl-item-paused-p item) (not paused-p))
-    (youtube-dl--run)))
+    (if (eq item (youtube-dl--current))
+        (youtube-dl--run)
+      (youtube-dl--redisplay))))
+
+(defun youtube-dl-list-toggle-pause-all ()
+  "Toggle pause on all items. When paused items are in the minority,
+all other items are paused, and vice versa."
+  (interactive)
+  (let* ((count (length  youtube-dl-items))
+         (paused-count (cl-count-if #'youtube-dl-item-paused-p youtube-dl-items))
+         (target (< paused-count (- count paused-count))))
+    (dolist (item youtube-dl-items)
+      (unless (eq target (youtube-dl-item-paused-p item))
+        (youtube-dl-list-toggle-pause item)))
+    (unless (or target (youtube-dl--current))
+      (youtube-dl--run))))
 
 (defun youtube-dl-list-toggle-slow (item)
   "Toggle slow mode on item under point."
@@ -600,6 +615,7 @@ all other items are made slow, and vice versa."
       (define-key map "k" #'previous-line)
       (define-key map "d" #'youtube-dl-list-kill)
       (define-key map "p" #'youtube-dl-list-toggle-pause)
+      (define-key map "P" #'youtube-dl-list-toggle-pause-all)
       (define-key map "s" #'youtube-dl-list-toggle-slow)
       (define-key map "S" #'youtube-dl-list-toggle-slow-all)
       (define-key map "]" #'youtube-dl-list-priority-up)
