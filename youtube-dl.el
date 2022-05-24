@@ -568,7 +568,8 @@ of reversed playlists.
       (kill-process youtube-dl-process))))
 
 (defun youtube-dl-list-toggle-slow-all ()
-  "Toggle slow mode on all items."
+  "Toggle slow mode on all items. When slow items are in the minority,
+all other items are made slow, and vice versa."
   (interactive)
   (let* ((count (length  youtube-dl-items))
          (slow-count (cl-count-if #'youtube-dl-item-slow-p youtube-dl-items))
