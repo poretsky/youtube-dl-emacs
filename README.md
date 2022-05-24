@@ -11,6 +11,9 @@ download at a slower rate (`youtube-dl-slow-rate`).
 The `youtube-dl-playlist` command queues an entire playlist, just as if
 you had individually queued each video on the playlist.
 
+Use `youtube-dl-audio` and `youtube-dl-playlist-audio` commands
+to download only audio content.
+
 The `youtube-dl-list` command displays a list of all active video
 downloads. From this list, items under point can be canceled
 (<kbd>d</kbd>), paused (<kbd>p</kbd>), slowed (<kbd>s</kbd>), and have

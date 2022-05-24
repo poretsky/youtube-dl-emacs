@@ -84,6 +84,35 @@ for downloaded files."
   :group 'youtube-dl
   :type 'string)
 
+(defconst youtube-dl-audio-quality
+  '(radio :tag "Quality level"
+          (const :tag "default" nil)
+          (const :doc "The best quality but slowest conversion" "0")
+          (const "1")
+          (const "2")
+          (const "3")
+          (const "4")
+          (const :doc "Default level" "5")
+          (const "6")
+          (const "7")
+          (const "8")
+          (const "9")
+          (const :doc "The worst quality but fast conversion" "10"))
+  "Audio quality choice for some formats extraction.")
+
+(defcustom youtube-dl-preferred-audio-format nil
+  "Preferred format for audio extraction."
+  :group 'youtube-dl
+  :type `(choice (const :tag "default" nil)
+                 (cons :tag "aac" (const "aac") ,youtube-dl-audio-quality)
+                 (const "flac")
+                 (cons :tag "mp3" (const "mp3") ,youtube-dl-audio-quality)
+                 (const "m4a")
+                 (cons :tag "opus" (const "opus") ,youtube-dl-audio-quality)
+                 (cons :tag "vorbis" (const "vorbis") ,youtube-dl-audio-quality)
+                 (const "wav")
+                 (const "alac")))
+
 (defface youtube-dl-active
   '((t :inherit font-lock-function-name-face))
   "Face for highlighting the active download item."
@@ -97,6 +126,11 @@ for downloaded files."
 (defface youtube-dl-pause
   '((t :inherit font-lock-type-face))
   "Face for highlighting the pause (P) tag."
+  :group 'youtube-dl)
+
+(defface youtube-dl-audio-content
+  '((t :inherit font-lock-preprocessor-face))
+  "Face for highlighting the audio content (A) tag."
   :group 'youtube-dl)
 
 (defface youtube-dl-priority
@@ -116,6 +150,7 @@ for downloaded files."
                                (:copier nil))
   "Represents a single video to be downloaded with youtube-dl."
   id           ; YouTube video ID (string)
+  audio-p      ; Non-nil if only audio should be extracted
   directory    ; Working directory for youtube-dl (string or nil)
   destination  ; Preferred destination file (string or nil)
   failures     ; Number of video download failures (integer)
@@ -233,6 +268,16 @@ display purposes anyway."
                      (concat (directory-file-name directory) "/")
                    (concat (directory-file-name youtube-dl-download-directory) "/")))
                (id (youtube-dl-item-id item))
+               (audio-p (youtube-dl-item-audio-p item))
+               (audio-format
+                (and audio-p
+                     (or (and (consp youtube-dl-preferred-audio-format)
+                              (car youtube-dl-preferred-audio-format))
+                         youtube-dl-preferred-audio-format)))
+               (audio-quality
+                (and audio-format
+                     (consp youtube-dl-preferred-audio-format)
+                     (cdr youtube-dl-preferred-audio-format)))
                (slow-p (youtube-dl-item-slow-p item))
                (proc (progn
                        (mkdir default-directory t)
@@ -243,6 +288,12 @@ display purposes anyway."
                                  (list "--no-mtime"))
                                (when youtube-dl-restrict-filenames
                                  (list "--restrict-filenames"))
+                               (when audio-p
+                                 (list "-x"))
+                               (when audio-format
+                                 `("--audio-format" ,audio-format))
+                               (when audio-quality
+                                 `("--audio-quality" ,audio-quality))
                                (when slow-p
                                  `("--rate-limit" ,youtube-dl-slow-rate))
                                (when destination
@@ -263,7 +314,7 @@ display purposes anyway."
 
 ;;;###autoload
 (cl-defun youtube-dl
-    (url &key title (priority 0) directory destination paused slow)
+    (url &key title extract-audio (priority 0) directory destination paused slow)
   "Queues URL for download using youtube-dl, returning the new item."
   (interactive
    (list (read-from-minibuffer
@@ -273,6 +324,7 @@ display purposes anyway."
   (let* ((id (youtube-dl--id-from-url url))
          (full-dir (expand-file-name (or directory "") youtube-dl-download-directory))
          (item (youtube-dl-item--create :id id
+                                        :audio-p extract-audio
                                         :failures 0
                                         :priority priority
                                         :paused-p paused
@@ -284,6 +336,24 @@ display purposes anyway."
       (when id
         (youtube-dl--add item)
         (youtube-dl--run)))))
+
+;;;###autoload
+(cl-defun youtube-dl-audio
+    (url &key title (priority 0) directory destination paused slow)
+  "Queues URL for download audio content using youtube-dl, returning the new item."
+  (interactive
+   (list (read-from-minibuffer
+          "URL: " (or (thing-at-point 'url)
+                      (when interprogram-paste-function
+                        (funcall interprogram-paste-function))))))
+  (youtube-dl url
+              :title title
+              :extract-audio t
+              :priority priority
+              :directory directory
+              :destination destination
+              :paused paused
+              :slow slow))
 
 (defun youtube-dl--playlist-list (playlist)
   "For each video, return one plist with :index, :id, and :title."
@@ -320,8 +390,10 @@ display purposes anyway."
 
 ;;;###autoload
 (cl-defun youtube-dl-playlist
-    (url &key directory (first 1) paused (priority 0) reverse slow)
+    (url &key extract-audio directory (first 1) paused (priority 0) reverse slow)
   "Add entire playlist to download queue, with index prefixes.
+
+:extract-audio BOOL -- Extract audio content.
 
 :directory PATH -- Destination directory for all videos.
 
@@ -357,11 +429,44 @@ of reversed playlists.
                  (dest (format "%s-%s" prefix "%(title)s-%(id)s.%(ext)s")))
             (youtube-dl (plist-get video :id)
                         :title title
+                        :extract-audio extract-audio
                         :priority priority
                         :directory directory
                         :destination dest
                         :paused paused
                         :slow slow)))))))
+
+;;;###autoload
+(cl-defun youtube-dl-playlist-audio
+    (url &key directory (first 1) paused (priority 0) reverse slow)
+  "Add entire playlist to download queue, with index prefixes.
+Only audio content will be extracted.
+
+:directory PATH -- Destination directory for all videos.
+
+:first INDEX -- Start downloading from a given one-based index.
+
+:paused BOOL -- Start all download entries as paused.
+
+:priority PRIORITY -- Use this priority for all download entries.
+
+:reverse BOOL -- Reverse the video numbering, solving the problem
+of reversed playlists.
+
+:slow BOOL -- Start all download entries in slow mode."
+  (interactive
+   (list (read-from-minibuffer
+          "URL: "
+          (when interprogram-paste-function
+            (funcall interprogram-paste-function)))))
+  (youtube-dl-playlist url
+                       :extract-audio t
+                       :directory directory
+                       :first first
+                       :paused paused
+                       :priority priority
+                       :reverse reverse
+                       :slow slow))
 
 ;; List user interface:
 
@@ -534,6 +639,7 @@ of reversed playlists.
   (with-current-buffer (youtube-dl--buffer)
     (let* ((inhibit-read-only t)
            (active (youtube-dl--current))
+           (string-audio (propertize "A" 'face 'youtube-dl-audio-content))
            (string-slow (propertize "S" 'face 'youtube-dl-slow))
            (string-paused (propertize "P" 'face 'youtube-dl-pause)))
       (erase-buffer)
@@ -542,6 +648,7 @@ of reversed playlists.
               (failures (youtube-dl-item-failures item))
               (priority (youtube-dl-item-priority item))
               (progress (youtube-dl-item-progress item))
+              (audio-p (youtube-dl-item-audio-p item))
               (paused-p (youtube-dl-item-paused-p item))
               (slow-p (youtube-dl-item-slow-p item))
               (total (youtube-dl-item-total item))
@@ -561,13 +668,19 @@ of reversed playlists.
                        ""
                      (propertize (format "%+d " priority)
                                  'face 'youtube-dl-priority))
-                   (cond ((and slow-p paused-p)
-                          (concat string-slow string-paused " "))
-                         (slow-p
-                          (concat string-slow " "))
-                         (paused-p
-                          (concat string-paused " "))
-                         (""))
+                   (if (or slow-p paused-p audio-p)
+                       (concat
+                        (if slow-p
+                            string-slow
+                          "")
+                        (if paused-p
+                            string-paused
+                          "")
+                        (if audio-p
+                            string-audio
+                          "")
+                        " ")
+                     "")
                    (or title ""))))))))
 
 ;;;###autoload
