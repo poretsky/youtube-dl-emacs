@@ -53,7 +53,7 @@
   "YouTube video download queue control options."
   :group 'external)
 
-(defcustom youtube-dl-download-directory "~/download"
+(defcustom youtube-dl-download-directory "~/download/youtube"
   "Default directory for downloads."
   :group 'youtube-dl
   :type 'directory)
