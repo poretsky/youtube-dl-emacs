@@ -50,7 +50,7 @@
 (require 'hl-line)
 
 (defgroup youtube-dl ()
-  "Download queue for the youtube-dl command line program."
+  "YouTube video download queue control options."
   :group 'external)
 
 (defcustom youtube-dl-download-directory "~/download"
