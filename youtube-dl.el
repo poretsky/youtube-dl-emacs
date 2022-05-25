@@ -113,6 +113,12 @@ for downloaded files."
                  (const "wav")
                  (const "alac")))
 
+(defcustom youtube-dl-immediate t
+  "Wether to start download immediately when queueing.
+When it is `off' items are queued as paused."
+  :group 'youtube-dl
+  :type 'boolean)
+
 (defface youtube-dl-active
   '((t :inherit font-lock-function-name-face))
   "Face for highlighting the active download item."
@@ -343,7 +349,7 @@ display purposes anyway."
 
 ;;;###autoload
 (cl-defun youtube-dl
-    (url &key title extract-audio (priority 0) directory destination paused slow)
+    (url &key title extract-audio (priority 0) directory destination (paused (not youtube-dl-immediate)) slow)
   "Queues URL for download using youtube-dl, returning the new item."
   (interactive
    (list (read-from-minibuffer
@@ -368,7 +374,7 @@ display purposes anyway."
 
 ;;;###autoload
 (cl-defun youtube-dl-audio
-    (url &key title (priority 0) directory destination paused slow)
+    (url &key title (priority 0) directory destination (paused (not youtube-dl-immediate)) slow)
   "Queues URL for download audio content using youtube-dl, returning the new item."
   (interactive
    (list (read-from-minibuffer
@@ -419,7 +425,7 @@ display purposes anyway."
 
 ;;;###autoload
 (cl-defun youtube-dl-playlist
-    (url &key extract-audio directory (first 1) paused (priority 0) reverse slow)
+    (url &key extract-audio directory (first 1) (paused (not youtube-dl-immediate)) (priority 0) reverse slow)
   "Add entire playlist to download queue, with index prefixes.
 
 :extract-audio BOOL -- Extract audio content.
@@ -467,7 +473,7 @@ of reversed playlists.
 
 ;;;###autoload
 (cl-defun youtube-dl-playlist-audio
-    (url &key directory (first 1) paused (priority 0) reverse slow)
+    (url &key directory (first 1) (paused (not youtube-dl-immediate)) (priority 0) reverse slow)
   "Add entire playlist to download queue, with index prefixes.
 Only audio content will be extracted.
 
