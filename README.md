@@ -16,8 +16,9 @@ to download only audio content.
 
 The `youtube-dl-list` command displays a list of all active video
 downloads. From this list, items under point can be canceled
-(<kbd>d</kbd>), paused (<kbd>p</kbd>), slowed (<kbd>s</kbd>), and have
-its priority adjusted (<kbd>[</kbd> and <kbd>]</kbd>).
+(<kbd>d</kbd>), paused (<kbd>p</kbd>), slowed (<kbd>s</kbd>), played
+(<kbd>SPC</kbd>), and have its priority adjusted
+(<kbd>[</kbd> and <kbd>]</kbd>).
 
 ![](https://i.imgur.com/wDWNsMf.png)
 

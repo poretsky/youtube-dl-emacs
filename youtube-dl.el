@@ -143,6 +143,31 @@ for downloaded files."
   "Face for highlighting the failure marker."
   :group 'youtube-dl)
 
+(defgroup youtube-dl-play ()
+  "YouTube video playback control options."
+  :group 'youtube-dl)
+
+(defcustom youtube-dl-play-program "mpv"
+  "The name of the program invoked for playing YouTube videos."
+  :group 'youtube-dl-play
+  :type 'string)
+
+(defcustom youtube-dl-play-fullscreen "--fs"
+  "Fullscreen playback mode option."
+  :group 'youtube-dl-play
+  :type '(choice (const :tag "according to player configuration" nil)
+                 (const :tag "yes" "--fs")
+                 (const :tag "no" "--no-fs")))
+
+(defcustom youtube-dl-play-format nil
+  "Playback format. It can be specified explicitly when default does not fit."
+  :group 'youtube-dl-play
+  :type '(choice (const :tag "default" nil)
+                 (const "best")
+                 (const "worst")
+                 (const "mp4")
+                 (const "webm")))
+
 (defvar-local youtube-dl--log-item nil
   "Item currently being displayed in the log buffer.")
 
@@ -615,6 +640,7 @@ all other items are made slow, and vice versa."
       (define-key map "l" #'youtube-dl-list-log)
       (define-key map "L" #'youtube-dl-list-kill-log)
       (define-key map "y" #'youtube-dl-list-yank)
+      (define-key map " " #'youtube-dl-list-play)
       (define-key map "j" #'next-line)
       (define-key map "k" #'previous-line)
       (define-key map "d" #'youtube-dl-list-kill)
@@ -710,6 +736,39 @@ all other items are made slow, and vice versa."
   (interactive)
   (youtube-dl--fill-listing)
   (pop-to-buffer (youtube-dl--buffer)))
+
+(defun youtube-dl-play--sentinel (process event)
+  "YouTube video playback process events handler."
+  (message "Process %s %s" (process-name process) event))
+
+;;;###autoload
+(cl-defun youtube-dl-play-url (url &key start)
+  "Plays video from specified URL.
+
+:start -- Start time specification string."
+  (interactive
+   (list (read-from-minibuffer
+          "URL: " (or (thing-at-point 'url)
+                      (when interprogram-paste-function
+                        (funcall interprogram-paste-function))))))
+  (let ((proc
+         (apply #'start-process "mpv" nil youtube-dl-play-program
+                "--no-terminal" "--ytdl"
+                (nconc (list youtube-dl-play-fullscreen)
+                       (when youtube-dl-play-format
+                         `("--ytdl-format" ,youtube-dl-play-format))
+                       (when start
+                         `("--start" ,start))
+                       `(,url)))))
+    (set-process-sentinel proc #'youtube-dl-play--sentinel)))
+
+;;;###autoload
+(defun youtube-dl-list-play ()
+  "Plays video under point from the download list."
+  (interactive)
+  (youtube-dl-play-url
+   (youtube-dl--url-from-id
+    (youtube-dl-item-id (youtube-dl--pointed-item)))))
 
 ;;;###autoload
 (defun youtube-dl-customize ()
