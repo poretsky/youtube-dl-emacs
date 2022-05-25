@@ -312,6 +312,10 @@ display purposes anyway."
            "\\(?:\\.be/\\|v=\\|v%3D\\|^\\)\\([-_a-zA-Z0-9]\\{11\\}\\)" url)
       (match-string 1 url))))
 
+(defun youtube-dl--url-from-id (id)
+  "Return URL for the 11-character video ID."
+  (concat "https://youtu.be/" id))
+
 ;;;###autoload
 (cl-defun youtube-dl
     (url &key title extract-audio (priority 0) directory destination paused slow)
@@ -527,7 +531,7 @@ of reversed playlists.
 (defun youtube-dl-list-yank ()
   "Copy the URL of the video under point to the clipboard."
   (interactive)
-  (let ((url (concat "https://youtu.be/" (youtube-dl-item-id (youtube-dl--pointed-item)))))
+  (let ((url (youtube-dl--url-from-id (youtube-dl-item-id (youtube-dl--pointed-item)))))
     (if (fboundp 'gui-set-selection)
         (gui-set-selection nil url)     ; >= Emacs 25
       (with-no-warnings
