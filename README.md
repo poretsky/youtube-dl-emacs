@@ -18,7 +18,10 @@ The `youtube-dl-list` command displays a list of all active video
 downloads. From this list, items under point can be canceled
 (<kbd>d</kbd>), paused (<kbd>p</kbd>), slowed (<kbd>s</kbd>), played
 (<kbd>SPC</kbd>), and have its priority adjusted
-(<kbd>[</kbd> and <kbd>]</kbd>).
+(<kbd>[</kbd> and <kbd>]</kbd>). Among this, an item description can
+be loaded and shown in a separate buffer (<kbd>RET</kbd>). Highlighted
+references in this buffer can be navigated with <kbd>tab</kbd> and
+<kbd>backtab</kbd> and activated with <kbd>RET</kbd>.
 
 ![](https://i.imgur.com/wDWNsMf.png)
 
