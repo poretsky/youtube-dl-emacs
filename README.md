@@ -4,6 +4,18 @@ This package manages a video download queue for [youtube-dl][yt], which
 serves as the back end. It manages a single youtube-dl subprocess,
 downloading one video at a time. New videos can be queued at any time.
 
+To make use of this package compile it with the command:
+
+```bash
+$ make
+```
+
+And then add the following line to your Emacs startup file:
+
+```elisp
+(load "path/to/this/directory/youtube-dl-autoloads")
+```
+
 The `youtube-dl` command queues a single URL for download. Failures are
 retried up to `youtube-dl-max-failures`. Items can be paused or set to
 download at a slower rate (`youtube-dl-slow-rate`).
@@ -13,6 +25,8 @@ you had individually queued each video on the playlist.
 
 Use `youtube-dl-audio` and `youtube-dl-playlist-audio` commands
 to download only audio content.
+
+All these actions are also available via `menu / tools`.
 
 The `youtube-dl-list` command displays a list of all active video
 downloads. From this list, items under point can be canceled
