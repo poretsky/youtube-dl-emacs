@@ -49,7 +49,13 @@
 (require 'cl-lib)
 (require 'hl-line)
 
-(defgroup youtube-dl ()
+(declare-function youtube-dl-play "youtube-dl-play")
+(declare-function youtube-dl-view "youtube-dl-view")
+
+;;;###autoload
+(defgroup youtube-dl
+  '((youtube-dl-play custom-group)
+    (youtube-dl-view custom-group))
   "YouTube video download queue control options."
   :group 'external)
 
@@ -148,50 +154,6 @@ When it is `off' items are queued as paused."
   '((t :inherit font-lock-warning-face))
   "Face for highlighting the failure marker."
   :group 'youtube-dl)
-
-(defgroup youtube-dl-play ()
-  "YouTube video playback control options."
-  :group 'youtube-dl)
-
-(defcustom youtube-dl-play-program "mpv"
-  "The name of the program invoked for playing YouTube videos."
-  :group 'youtube-dl-play
-  :type 'string)
-
-(defcustom youtube-dl-play-fullscreen "--fs"
-  "Fullscreen playback mode option."
-  :group 'youtube-dl-play
-  :type '(choice (const :tag "according to player configuration" nil)
-                 (const :tag "yes" "--fs")
-                 (const :tag "no" "--no-fs")))
-
-(defcustom youtube-dl-play-format nil
-  "Playback format. It can be specified explicitly when default does not fit."
-  :group 'youtube-dl-play
-  :type '(choice (const :tag "default" nil)
-                 (const "best")
-                 (const "worst")
-                 (const "mp4")
-                 (const "webm")))
-
-(defgroup youtube-dl-view ()
-  "YouTube video descriptions view settings."
-  :group 'youtube-dl)
-
-(defface youtube-dl-play-start-time
-  '((t :inherit font-lock-builtin-face))
-  "Face for highlighting play start time references."
-  :group 'youtube-dl-view)
-
-(defface youtube-dl-view-link
-  '((t :inherit font-lock-function-name-face))
-  "Face for highlighting external links."
-  :group 'youtube-dl-view)
-
-(defface youtube-dl-view-mail
-  '((t :inherit font-lock-variable-name-face))
-  "Face for highlighting e-mail addresses."
-  :group 'youtube-dl-view)
 
 (defvar-local youtube-dl--log-item nil
   "Item currently being displayed in the log buffer.")
@@ -665,8 +627,8 @@ all other items are made slow, and vice versa."
       (define-key map "l" #'youtube-dl-list-log)
       (define-key map "L" #'youtube-dl-list-kill-log)
       (define-key map "y" #'youtube-dl-list-yank)
-      (define-key map " " #'youtube-dl-list-play)
-      (define-key map "\r" #'youtube-dl-list-view-item)
+      (define-key map " " #'youtube-dl-play)
+      (define-key map "\r" #'youtube-dl-view)
       (define-key map "j" #'next-line)
       (define-key map "k" #'previous-line)
       (define-key map "d" #'youtube-dl-list-kill)
@@ -762,162 +724,6 @@ all other items are made slow, and vice versa."
   (interactive)
   (youtube-dl--fill-listing)
   (pop-to-buffer (youtube-dl--buffer)))
-
-(defun youtube-dl-play--sentinel (process event)
-  "YouTube video playback process events handler."
-  (message "Process %s %s" (process-name process) event))
-
-;;;###autoload
-(cl-defun youtube-dl-play-url (url &key start)
-  "Plays video from specified URL.
-
-:start -- Start time specification string."
-  (interactive
-   (list (read-from-minibuffer
-          "URL: " (or (thing-at-point 'url)
-                      (when interprogram-paste-function
-                        (funcall interprogram-paste-function))))))
-  (let ((proc
-         (apply #'start-process "mpv" nil youtube-dl-play-program
-                "--no-terminal" "--ytdl"
-                (nconc (list youtube-dl-play-fullscreen)
-                       (when youtube-dl-play-format
-                         `("--ytdl-format" ,youtube-dl-play-format))
-                       (when start
-                         `("--start" ,start))
-                       `(,url)))))
-    (set-process-sentinel proc #'youtube-dl-play--sentinel)))
-
-;;;###autoload
-(defun youtube-dl-list-play ()
-  "Plays video under point from the download list."
-  (interactive)
-  (youtube-dl-play-url
-   (youtube-dl--url-from-id
-    (youtube-dl-item-id (youtube-dl--pointed-item)))))
-
-(defvar youtube-dl-view-mode-map
-  (let ((map (make-sparse-keymap)))
-    (prog1 map
-      (define-key map "\t" #'youtube-dl-view-next-reference)
-      (define-key map [backtab] #'youtube-dl-view-prev-reference)
-      (define-key map "\r" #'youtube-dl-view-action)))
-  "Keymap for `youtube-dl-view-mode'")
-
-(define-derived-mode youtube-dl-view-mode special-mode "youtube-dl-view"
-  "Major mode for viewing youtube-dl items info."
-  :group 'youtube-dl-view
-  (use-local-map youtube-dl-view-mode-map))
-
-;;;###autoload
-(defun youtube-dl-view-url (url)
-  "Retrieve and show info from specified URL."
-  (interactive
-   (list (read-from-minibuffer
-          "URL: " (or (thing-at-point 'url)
-                      (when interprogram-paste-function
-                        (funcall interprogram-paste-function))))))
-  (cl-declare (special youtube-dl-current-url))
-  (with-current-buffer (get-buffer-create " *youtube-dl view*")
-    (youtube-dl-view-mode)
-    (let ((window (get-buffer-window))
-          (inhibit-read-only t))
-      (erase-buffer)
-      (when (zerop (call-process youtube-dl-program nil t nil
-                                 "--ignore-config"
-                                 "--get-description"
-                                 url))
-        (goto-char (point-min))
-        (while
-            (search-forward-regexp
-             "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(\\(https?://\\)[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\([0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(\\.[0-9]+\\)?"
-             (point-max) t)
-          (cond
-           ((match-string 1)
-            (let ((link (bounds-of-thing-at-point 'email)))
-              (when link
-                (put-text-property (car link) (cdr link)
-                                   'face 'youtube-dl-view-mail))))
-           ((match-string 2)
-            (let ((link (bounds-of-thing-at-point 'url)))
-              (when link
-                (put-text-property (car link) (cdr link)
-                                   'face 'youtube-dl-view-link))))
-           (t (put-text-property (match-beginning 0) (match-end 0)
-                                 'face 'youtube-dl-play-start-time))))
-        (set (make-local-variable 'youtube-dl-current-url) url)
-        (setf (point) (point-min))
-        (when window
-          (set-window-point window (point-min)))
-        (pop-to-buffer (current-buffer))))))
-
-(defun youtube-dl-list-view-item ()
-  "Show info about an item under point."
-  (interactive)
-  (youtube-dl-view-url
-   (youtube-dl--url-from-id
-    (youtube-dl-item-id (youtube-dl--pointed-item)))))
-
-(defun youtube-dl-view-action ()
-  "Performs an action associated with the reference under point."
-  (interactive)
-  (cl-declare (special youtube-dl-current-url))
-  (unless (eq major-mode 'youtube-dl-view-mode)
-    (error "Not in youtube-dl view buffer."))
-  (cond
-   ((eq (get-text-property (point) 'face) 'youtube-dl-play-start-time)
-    (youtube-dl-play-url youtube-dl-current-url
-                         :start (buffer-substring-no-properties
-                                 (line-beginning-position)
-                                 (or (next-single-property-change (point) 'face) (point-max)))))
-   ((eq (get-text-property (point) 'face) 'youtube-dl-view-link)
-    (browse-url-at-point))
-   ((eq (get-text-property (point) 'face) 'youtube-dl-view-mail)
-    (compose-mail (thing-at-point 'email)))
-   (t (error "No reference at this point."))))
-
-(defun youtube-dl-view-next-reference ()
-  "Move to the next reference if any."
-  (interactive)
-  (unless (eq major-mode 'youtube-dl-view-mode)
-    (error "Not in youtube-dl view buffer."))
-  (let ((start (point))
-        (pos (next-single-property-change (point) 'face)))
-    (while pos
-      (if (or (eq 'youtube-dl-play-start-time (get-text-property pos 'face))
-              (eq 'youtube-dl-view-link (get-text-property pos 'face))
-              (eq 'youtube-dl-view-mail (get-text-property pos 'face)))
-          (progn
-            (goto-char pos)
-            (setq pos nil))
-        (setq pos (next-single-property-change pos 'face))))
-    (when (equal (point) start)
-      (error "No more references."))))
-
-(defun youtube-dl-view-prev-reference ()
-  "Move to the previous reference if any."
-  (interactive)
-  (unless (eq major-mode 'youtube-dl-view-mode)
-    (error "Not in youtube-dl view buffer."))
-  (let ((start (point))
-        (pos (previous-single-property-change (point) 'face)))
-    (while pos
-      (cond
-       ((eq 'youtube-dl-play-start-time (get-text-property pos 'face))
-        (goto-char pos)
-        (beginning-of-line)
-        (setq pos nil))
-       ((eq 'youtube-dl-view-link (get-text-property pos 'face))
-        (goto-char pos)
-        (goto-char (car (bounds-of-thing-at-point 'url)))
-        (setq pos nil))
-       ((eq 'youtube-dl-view-mail (get-text-property pos 'face))
-        (goto-char pos)
-        (goto-char (car (bounds-of-thing-at-point 'email)))
-        (setq pos nil))
-       (t (setq pos (previous-single-property-change pos 'face)))))
-    (when (equal (point) start)
-      (error "No more references."))))
 
 ;;;###autoload
 (defun youtube-dl-customize ()
