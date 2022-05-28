@@ -649,9 +649,9 @@ all other items are made slow, and vice versa."
   (hl-line-mode)
   (setf truncate-lines t
         header-line-format
-        (format "%s%-11s %-6.6s %-10.10s %s"
+        (format "%s%-6.6s %-10.10s %s"
                 (propertize " " 'display '((space :align-to 0)))
-                "id" "done" "size" "title")))
+                "done" "size" "title")))
 
 (defun youtube-dl--buffer ()
   "Returns the queue listing buffer."
@@ -681,20 +681,17 @@ all other items are made slow, and vice versa."
            (string-paused (propertize "P" 'face 'youtube-dl-pause)))
       (erase-buffer)
       (dolist (item youtube-dl-items)
-        (let ((id (youtube-dl-item-id item))
-              (failures (youtube-dl-item-failures item))
-              (priority (youtube-dl-item-priority item))
-              (progress (youtube-dl-item-progress item))
-              (audio-p (youtube-dl-item-audio-p item))
-              (paused-p (youtube-dl-item-paused-p item))
-              (slow-p (youtube-dl-item-slow-p item))
-              (total (youtube-dl-item-total item))
-              (title (youtube-dl-item-title item)))
+        (let* ((id (youtube-dl-item-id item))
+               (failures (youtube-dl-item-failures item))
+               (priority (youtube-dl-item-priority item))
+               (progress (youtube-dl-item-progress item))
+               (audio-p (youtube-dl-item-audio-p item))
+               (paused-p (youtube-dl-item-paused-p item))
+               (slow-p (youtube-dl-item-slow-p item))
+               (total (youtube-dl-item-total item))
+               (title (or (youtube-dl-item-title item) id)))
           (insert
-           (format "%-11s %-6.6s %-10.10s %s%s%s%s\n"
-                   (if (eq active item)
-                       (propertize id 'face 'youtube-dl-active)
-                     id)
+           (format "%-6.6s %-10.10s %s%s%s%s\n"
                    (or progress "0.0%")
                    (or total "???")
                    (if (= failures 0)
@@ -718,7 +715,9 @@ all other items are made slow, and vice versa."
                           "")
                         " ")
                      "")
-                   (or title ""))))))))
+                   (if (eq active item)
+                       (propertize title 'face 'youtube-dl-active)
+                     title))))))))
 
 ;;;###autoload
 (defun youtube-dl-list ()
