@@ -570,9 +570,10 @@ of reversed playlists.
   "Toggle pause on item under point."
   (interactive
    (list (youtube-dl--pointed-item)))
-  (let ((paused-p (youtube-dl-item-paused-p item)))
+  (let ((paused-p (youtube-dl-item-paused-p item))
+        (current (youtube-dl--current)))
     (setf (youtube-dl-item-paused-p item) (not paused-p))
-    (if (eq item (youtube-dl--current))
+    (if (or (null current) (eq item current))
         (youtube-dl--run)
       (youtube-dl--redisplay))))
 
@@ -585,9 +586,7 @@ all other items are paused, and vice versa."
          (target (< paused-count (- count paused-count))))
     (dolist (item youtube-dl-items)
       (unless (eq target (youtube-dl-item-paused-p item))
-        (youtube-dl-list-toggle-pause item)))
-    (unless (or target (youtube-dl--current))
-      (youtube-dl--run))))
+        (youtube-dl-list-toggle-pause item)))))
 
 (defun youtube-dl-list-toggle-slow (item)
   "Toggle slow mode on item under point."
