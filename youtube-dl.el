@@ -631,8 +631,8 @@ all other items are made slow, and vice versa."
       (define-key map "y" #'youtube-dl-list-yank)
       (define-key map " " #'youtube-dl-play)
       (define-key map "\r" #'youtube-dl-view)
-      (define-key map "j" #'next-line)
-      (define-key map "k" #'previous-line)
+      (define-key map [down] #'youtube-dl-list-next-item)
+      (define-key map [up] #'youtube-dl-list-prev-item)
       (define-key map "d" #'youtube-dl-list-kill)
       (define-key map "p" #'youtube-dl-list-toggle-pause)
       (define-key map "P" #'youtube-dl-list-toggle-pause-all)
@@ -725,6 +725,25 @@ all other items are made slow, and vice versa."
   (interactive)
   (youtube-dl--fill-listing)
   (pop-to-buffer (youtube-dl--buffer)))
+
+(defconst youtube-dl-list-title-start-position 18
+  "Title start position in the youtube-dl list buffer.")
+
+(defun youtube-dl-list-next-item ()
+  "Move to the next item."
+  (interactive)
+  (unless (zerop (forward-line 1))
+    (error "End of buffer"))
+  (unless (eobp)
+    (forward-char youtube-dl-list-title-start-position)))
+
+(defun youtube-dl-list-prev-item ()
+  "Move to the previous item."
+  (interactive)
+  (when (<= (line-number-at-pos) 1)
+    (error "Beginning of buffer"))
+  (forward-line -1)
+  (forward-char youtube-dl-list-title-start-position))
 
 ;;;###autoload
 (defun youtube-dl-customize ()
