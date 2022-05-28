@@ -121,9 +121,13 @@ for downloaded files."
 
 (defcustom youtube-dl-immediate t
   "Wether to start download immediately when queueing.
-When it is `off' items are queued as paused."
+If nil, items are queued as paused.
+`always' means to start download immediately without asking.
+Any other value means to ask for each queueing item."
   :group 'youtube-dl
-  :type 'boolean)
+  :type '(choice (const :tag "Yes" always)
+                 (const :tag "No" nil)
+                 (const :tag "Ask" t)))
 
 (defface youtube-dl-active
   '((t :inherit font-lock-function-name-face))
@@ -328,22 +332,37 @@ display purposes anyway."
   "Return URL for the 11-character video ID."
   (concat "https://youtu.be/" id))
 
+(defun youtube-dl--request-url ()
+  "Interactively request URL from user."
+  (read-from-minibuffer "URL: "
+                        (or (thing-at-point 'url)
+                            (when interprogram-paste-function
+                              (funcall interprogram-paste-function)))))
+
+(defun youtube-dl--request-immediate ()
+  "Ask user about immediate download if necessary."
+  (or (eq youtube-dl-immediate 'always)
+      (and youtube-dl-immediate
+           (y-or-n-p "Start download immediately? "))))
+
+(defun youtube-dl--request-args ()
+  "Interactively request download arguments from user."
+  (list (youtube-dl--request-url)
+        (youtube-dl--request-immediate)))
+
 ;;;###autoload
 (cl-defun youtube-dl
-    (url &key title extract-audio (priority 0) directory destination (paused (not youtube-dl-immediate)) slow)
-  "Queues URL for download using youtube-dl, returning the new item."
-  (interactive
-   (list (read-from-minibuffer
-          "URL: " (or (thing-at-point 'url)
-                      (when interprogram-paste-function
-                        (funcall interprogram-paste-function))))))
+    (url immediate &key title extract-audio (priority 0) directory destination slow)
+  "Queues URL for download using youtube-dl, returning the new item.
+If second argument is nil, the item starts as paused."
+  (interactive (youtube-dl--request-args))
   (let* ((id (youtube-dl--id-from-url url))
          (full-dir (expand-file-name (or directory "") youtube-dl-download-directory))
          (item (youtube-dl-item--create :id id
                                         :audio-p extract-audio
                                         :failures 0
                                         :priority priority
-                                        :paused-p paused
+                                        :paused-p (not immediate)
                                         :slow-p slow
                                         :directory full-dir
                                         :destination destination
@@ -355,20 +374,16 @@ display purposes anyway."
 
 ;;;###autoload
 (cl-defun youtube-dl-audio
-    (url &key title (priority 0) directory destination (paused (not youtube-dl-immediate)) slow)
-  "Queues URL for download audio content using youtube-dl, returning the new item."
-  (interactive
-   (list (read-from-minibuffer
-          "URL: " (or (thing-at-point 'url)
-                      (when interprogram-paste-function
-                        (funcall interprogram-paste-function))))))
-  (youtube-dl url
+    (url immediate &key title (priority 0) directory destination slow)
+  "Queues URL for download audio content using youtube-dl, returning the new item.
+If second argument is nil, the item starts as paused."
+  (interactive (youtube-dl--request-args))
+  (youtube-dl url immediate
               :title title
               :extract-audio t
               :priority priority
               :directory directory
               :destination destination
-              :paused paused
               :slow slow))
 
 (defun youtube-dl--playlist-list (playlist)
@@ -406,8 +421,9 @@ display purposes anyway."
 
 ;;;###autoload
 (cl-defun youtube-dl-playlist
-    (url &key extract-audio directory (first 1) (paused (not youtube-dl-immediate)) (priority 0) reverse slow)
+    (url immediate &key extract-audio directory (first 1) (priority 0) reverse slow)
   "Add entire playlist to download queue, with index prefixes.
+If second argument is nil, the item starts as paused.
 
 :extract-audio BOOL -- Extract audio content.
 
@@ -415,19 +431,13 @@ display purposes anyway."
 
 :first INDEX -- Start downloading from a given one-based index.
 
-:paused BOOL -- Start all download entries as paused.
-
 :priority PRIORITY -- Use this priority for all download entries.
 
 :reverse BOOL -- Reverse the video numbering, solving the problem
 of reversed playlists.
 
 :slow BOOL -- Start all download entries in slow mode."
-  (interactive
-   (list (read-from-minibuffer
-          "URL: "
-          (when interprogram-paste-function
-            (funcall interprogram-paste-function)))))
+  (interactive (youtube-dl--request-args))
   (message "Fetching playlist ...")
   (let ((videos (youtube-dl--playlist-list url)))
     (if (null videos)
@@ -443,26 +453,24 @@ of reversed playlists.
                  (prefix (format prefix-format index))
                  (title (format "%s-%s" prefix (plist-get video :title)))
                  (dest (format "%s-%s" prefix "%(title)s-%(id)s.%(ext)s")))
-            (youtube-dl (plist-get video :id)
+            (youtube-dl (plist-get video :id) immediate
                         :title title
                         :extract-audio extract-audio
                         :priority priority
                         :directory directory
                         :destination dest
-                        :paused paused
                         :slow slow)))))))
 
 ;;;###autoload
 (cl-defun youtube-dl-playlist-audio
-    (url &key directory (first 1) (paused (not youtube-dl-immediate)) (priority 0) reverse slow)
+    (url immediate &key directory (first 1) (priority 0) reverse slow)
   "Add entire playlist to download queue, with index prefixes.
 Only audio content will be extracted.
+If second argument is nil, the item starts as paused.
 
 :directory PATH -- Destination directory for all videos.
 
 :first INDEX -- Start downloading from a given one-based index.
-
-:paused BOOL -- Start all download entries as paused.
 
 :priority PRIORITY -- Use this priority for all download entries.
 
@@ -470,16 +478,11 @@ Only audio content will be extracted.
 of reversed playlists.
 
 :slow BOOL -- Start all download entries in slow mode."
-  (interactive
-   (list (read-from-minibuffer
-          "URL: "
-          (when interprogram-paste-function
-            (funcall interprogram-paste-function)))))
-  (youtube-dl-playlist url
+  (interactive (youtube-dl--request-args))
+  (youtube-dl-playlist url immediate
                        :extract-audio t
                        :directory directory
                        :first first
-                       :paused paused
                        :priority priority
                        :reverse reverse
                        :slow slow))

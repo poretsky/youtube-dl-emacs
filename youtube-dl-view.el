@@ -35,6 +35,7 @@
   (require 'youtube-dl))
 
 (declare-function youtube-dl--pointed-item "youtube-dl")
+(declare-function youtube-dl--request-url "youtube-dl")
 (declare-function youtube-dl--url-from-id "youtube-dl" (id))
 (declare-function youtube-dl-item-id "youtube-dl" (item))
 (declare-function youtube-dl-play-url "youtube-dl-play" (url &key start))
@@ -75,11 +76,7 @@
 ;;;###autoload
 (defun youtube-dl-view-url (url)
   "Retrieve and show info from specified URL."
-  (interactive
-   (list (read-from-minibuffer
-          "URL: " (or (thing-at-point 'url)
-                      (when interprogram-paste-function
-                        (funcall interprogram-paste-function))))))
+  (interactive (youtube-dl--request-url))
   (cl-declare (special youtube-dl-program youtube-dl-current-url))
   (with-current-buffer (get-buffer-create " *youtube-dl view*")
     (youtube-dl-view-mode)

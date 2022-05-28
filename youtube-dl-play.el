@@ -37,6 +37,7 @@
   (require 'youtube-dl))
 
 (declare-function youtube-dl--pointed-item "youtube-dl")
+(declare-function youtube-dl--request-url "youtube-dl")
 (declare-function youtube-dl--url-from-id "youtube-dl" (id))
 (declare-function youtube-dl-item-id "youtube-dl" (item))
 
@@ -75,11 +76,7 @@
   "Plays video from specified URL.
 
 :start -- Start time specification string."
-  (interactive
-   (list (read-from-minibuffer
-          "URL: " (or (thing-at-point 'url)
-                      (when interprogram-paste-function
-                        (funcall interprogram-paste-function))))))
+  (interactive (youtube-dl--request-url))
   (let ((proc
          (apply #'start-process "mpv" nil youtube-dl-play-program
                 "--no-terminal" "--ytdl"
