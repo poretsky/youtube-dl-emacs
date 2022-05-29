@@ -563,10 +563,7 @@ of reversed playlists.
   (interactive)
   (let ((url (or (get-text-property (point) 'youtube-dl-playlist-url)
                  (youtube-dl-item-url (youtube-dl--pointed-item)))))
-    (if (fboundp 'gui-set-selection)
-        (gui-set-selection nil url)     ; >= Emacs 25
-      (with-no-warnings
-        (x-set-selection 'PRIMARY url))) ; <= Emacs 24
+    (kill-new url)
     (message "Yanked %s" url)))
 
 (defun youtube-dl-list-kill ()
