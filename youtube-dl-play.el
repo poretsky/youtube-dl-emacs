@@ -38,8 +38,7 @@
 
 (declare-function youtube-dl--pointed-item "youtube-dl")
 (declare-function youtube-dl--request-url "youtube-dl")
-(declare-function youtube-dl--url-from-id "youtube-dl" (id))
-(declare-function youtube-dl-item-id "youtube-dl" (item))
+(declare-function youtube-dl-item-url "youtube-dl" (item))
 
 ;;;###autoload
 (defgroup youtube-dl-play ()
@@ -92,9 +91,7 @@
 (defun youtube-dl-play ()
   "Plays video under point from the download list."
   (interactive)
-  (youtube-dl-play-url
-   (youtube-dl--url-from-id
-    (youtube-dl-item-id (youtube-dl--pointed-item)))))
+  (youtube-dl-play-url (youtube-dl-item-url (youtube-dl--pointed-item))))
 
 (provide 'youtube-dl-play)
 

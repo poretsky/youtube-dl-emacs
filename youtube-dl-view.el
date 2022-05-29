@@ -36,8 +36,7 @@
 
 (declare-function youtube-dl--pointed-item "youtube-dl")
 (declare-function youtube-dl--request-url "youtube-dl")
-(declare-function youtube-dl--url-from-id "youtube-dl" (id))
-(declare-function youtube-dl-item-id "youtube-dl" (item))
+(declare-function youtube-dl-item-url "youtube-dl" (item))
 (declare-function youtube-dl-play-url "youtube-dl-play" (url &key start))
 
 ;;;###autoload
@@ -115,9 +114,7 @@
 (defun youtube-dl-view ()
   "Show info about an item under point."
   (interactive)
-  (youtube-dl-view-url
-   (youtube-dl--url-from-id
-    (youtube-dl-item-id (youtube-dl--pointed-item)))))
+  (youtube-dl-view-url (youtube-dl-item-url (youtube-dl--pointed-item))))
 
 (defun youtube-dl-view-action ()
   "Performs an action associated with the reference under point."

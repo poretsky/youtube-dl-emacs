@@ -166,6 +166,7 @@ Any other value means to ask for each queueing item."
                                (:copier nil))
   "Represents a single video to be downloaded with youtube-dl."
   id           ; YouTube video ID (string)
+  url          ; Original URL (string)
   audio-p      ; Non-nil if only audio should be extracted
   directory    ; Working directory for youtube-dl (string or nil)
   destination  ; Preferred destination file (string or nil)
@@ -283,7 +284,7 @@ display purposes anyway."
                  (if directory
                      (concat (directory-file-name directory) "/")
                    (concat (directory-file-name youtube-dl-download-directory) "/")))
-               (id (youtube-dl-item-id item))
+               (url (youtube-dl-item-url item))
                (audio-p (youtube-dl-item-audio-p item))
                (audio-format
                 (and audio-p
@@ -314,7 +315,7 @@ display purposes anyway."
                                  `("--rate-limit" ,youtube-dl-slow-rate))
                                (when destination
                                  `("--output" ,destination))
-                               `("--" ,id))))))
+                               `("--" ,url))))))
           (set-process-plist proc (list :item item))
           (set-process-sentinel proc #'youtube-dl--sentinel)
           (set-process-filter proc #'youtube-dl--filter)
@@ -327,10 +328,6 @@ display purposes anyway."
     (when (string-match
            "\\(?:\\.be/\\|v=\\|v%3D\\|^\\)\\([-_a-zA-Z0-9]\\{11\\}\\)" url)
       (match-string 1 url))))
-
-(defun youtube-dl--url-from-id (id)
-  "Return URL for the 11-character video ID."
-  (concat "https://youtu.be/" id))
 
 (defun youtube-dl--request-url ()
   "Interactively request URL from user."
@@ -359,6 +356,7 @@ If second argument is nil, the item starts as paused."
   (let* ((id (youtube-dl--id-from-url url))
          (full-dir (expand-file-name (or directory "") youtube-dl-download-directory))
          (item (youtube-dl-item--create :id id
+                                        :url url
                                         :audio-p extract-audio
                                         :failures 0
                                         :priority priority
@@ -401,6 +399,7 @@ If second argument is nil, the item starts as paused."
                while video
                collect (list :index index
                              :id    (plist-get video :id)
+                             :url (plist-get video :original_url)
                              :title (plist-get video :title))))))
 
 (defun youtube-dl--playlist-reverse (list)
@@ -453,7 +452,7 @@ of reversed playlists.
                  (prefix (format prefix-format index))
                  (title (format "%s-%s" prefix (plist-get video :title)))
                  (dest (format "%s-%s" prefix "%(title)s-%(id)s.%(ext)s")))
-            (youtube-dl (plist-get video :id) immediate
+            (youtube-dl (plist-get video :url) immediate
                         :title title
                         :extract-audio extract-audio
                         :priority priority
@@ -546,7 +545,7 @@ of reversed playlists.
 (defun youtube-dl-list-yank ()
   "Copy the URL of the video under point to the clipboard."
   (interactive)
-  (let ((url (youtube-dl--url-from-id (youtube-dl-item-id (youtube-dl--pointed-item)))))
+  (let ((url (youtube-dl-item-url (youtube-dl--pointed-item))))
     (if (fboundp 'gui-set-selection)
         (gui-set-selection nil url)     ; >= Emacs 25
       (with-no-warnings
