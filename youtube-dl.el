@@ -524,7 +524,8 @@ of reversed playlists.
   "Get item under point. Signal an error if none."
   (unless (eq (current-buffer) (youtube-dl--buffer))
     (error "The operation is not available in this buffer."))
-  (let ((item (nth (1- (line-number-at-pos)) youtube-dl-items)))
+  (let* ((index (get-text-property (point) 'youtube-dl-item-index))
+         (item (and index (nth index youtube-dl-items))))
     (unless item
       (error "No item at this line."))
     item))
@@ -555,8 +556,6 @@ of reversed playlists.
 (defun youtube-dl-list-kill ()
   "Remove the selected item from the queue."
   (interactive)
-  (when (= (line-number-at-pos) (length youtube-dl-items))
-    (forward-line -1))
   (youtube-dl--remove (youtube-dl--pointed-item))
   (youtube-dl--run))
 
@@ -674,6 +673,7 @@ all other items are made slow, and vice versa."
   "Erase and redraw the queue in the queue listing buffer."
   (with-current-buffer (youtube-dl--buffer)
     (let* ((inhibit-read-only t)
+           (index 0)
            (active (youtube-dl--current))
            (string-audio (propertize "A" 'face 'youtube-dl-audio-content))
            (string-slow (propertize "S" 'face 'youtube-dl-slow))
@@ -688,9 +688,10 @@ all other items are made slow, and vice versa."
                (paused-p (youtube-dl-item-paused-p item))
                (slow-p (youtube-dl-item-slow-p item))
                (total (youtube-dl-item-total item))
-               (title (or (youtube-dl-item-title item) id)))
+               (title (or (youtube-dl-item-title item) id))
+               (start (point)))
           (insert
-           (format "%-6.6s %-10.10s %s%s%s%s\n"
+           (format "%-6.6s %-10.10s %s%s%s%s"
                    (or progress "0.0%")
                    (or total "???")
                    (if (= failures 0)
@@ -716,7 +717,10 @@ all other items are made slow, and vice versa."
                      "")
                    (if (eq active item)
                        (propertize title 'face 'youtube-dl-active)
-                     title))))))))
+                     title)))
+          (put-text-property start (point) 'youtube-dl-item-index index)
+          (setq index (1+ index))
+          (insert "\n"))))))
 
 ;;;###autoload
 (defun youtube-dl-list ()
