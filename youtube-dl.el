@@ -134,6 +134,11 @@ Any other value means to ask for each queueing item."
   "Face for highlighting the active download item."
   :group 'youtube-dl)
 
+(defface youtube-dl-playlist-title
+  '((t :inherit font-lock-comment-face))
+  "Face for highlighting a playlist title."
+  :group 'youtube-dl)
+
 (defface youtube-dl-slow
   '((t :inherit font-lock-variable-name-face))
   "Face for highlighting the slow (S) tag."
@@ -167,6 +172,8 @@ Any other value means to ask for each queueing item."
   "Represents a single video to be downloaded with youtube-dl."
   id           ; YouTube video ID (string)
   url          ; Original URL (string)
+  playlist     ; Playlist title (string or nil)
+  playlist-url ; URL of playlist (string or nil)
   audio-p      ; Non-nil if only audio should be extracted
   directory    ; Working directory for youtube-dl (string or nil)
   destination  ; Preferred destination file (string or nil)
@@ -349,7 +356,7 @@ display purposes anyway."
 
 ;;;###autoload
 (cl-defun youtube-dl
-    (url immediate &key title extract-audio (priority 0) directory destination slow)
+    (url immediate &key title playlist playlist-url extract-audio (priority 0) directory destination slow)
   "Queues URL for download using youtube-dl, returning the new item.
 If second argument is nil, the item starts as paused."
   (interactive (youtube-dl--request-args))
@@ -357,6 +364,8 @@ If second argument is nil, the item starts as paused."
          (full-dir (expand-file-name (or directory "") youtube-dl-download-directory))
          (item (youtube-dl-item--create :id id
                                         :url url
+                                        :playlist playlist
+                                        :playlist-url playlist-url
                                         :audio-p extract-audio
                                         :failures 0
                                         :priority priority
@@ -372,26 +381,29 @@ If second argument is nil, the item starts as paused."
 
 ;;;###autoload
 (cl-defun youtube-dl-audio
-    (url immediate &key title (priority 0) directory destination slow)
+    (url immediate &key title playlist playlist-url (priority 0) directory destination slow)
   "Queues URL for download audio content using youtube-dl, returning the new item.
 If second argument is nil, the item starts as paused."
   (interactive (youtube-dl--request-args))
   (youtube-dl url immediate
               :title title
+              :playlist playlist
+              :playlist-url playlist-url
               :extract-audio t
               :priority priority
               :directory directory
               :destination destination
               :slow slow))
 
-(defun youtube-dl--playlist-list (playlist)
-  "For each video, return one plist with :index, :id, and :title."
+(defun youtube-dl--playlist-list (url)
+  "For each video, return one plist with :index, :id,
+:url, :playlist, :playlist-url, and :title."
   (with-temp-buffer
     (when (zerop (call-process youtube-dl-program nil t nil
                                "--ignore-config"
                                "--dump-json"
                                "--flat-playlist"
-                               playlist))
+                               url))
       (setf (point) (point-min))
       (cl-loop with json-object-type = 'plist
                for index upfrom 1
@@ -400,6 +412,7 @@ If second argument is nil, the item starts as paused."
                collect (list :index index
                              :id    (plist-get video :id)
                              :url (plist-get video :original_url)
+                             :playlist (plist-get video :playlist)
                              :title (plist-get video :title))))))
 
 (defun youtube-dl--playlist-reverse (list)
@@ -454,6 +467,8 @@ of reversed playlists.
                  (dest (format "%s-%s" prefix "%(title)s-%(id)s.%(ext)s")))
             (youtube-dl (plist-get video :url) immediate
                         :title title
+                        :playlist (plist-get video :playlist)
+                        :playlist-url url
                         :extract-audio extract-audio
                         :priority priority
                         :directory directory
@@ -546,7 +561,8 @@ of reversed playlists.
 (defun youtube-dl-list-yank ()
   "Copy the URL of the video under point to the clipboard."
   (interactive)
-  (let ((url (youtube-dl-item-url (youtube-dl--pointed-item))))
+  (let ((url (or (get-text-property (point) 'youtube-dl-playlist-url)
+                 (youtube-dl-item-url (youtube-dl--pointed-item)))))
     (if (fboundp 'gui-set-selection)
         (gui-set-selection nil url)     ; >= Emacs 25
       (with-no-warnings
@@ -669,11 +685,15 @@ all other items are made slow, and vice versa."
           (setf youtube-dl--log-item item))
         (current-buffer)))))
 
+(defconst youtube-dl-list-title-start-position 18
+  "Title start position in the youtube-dl list buffer.")
+
 (defun youtube-dl--fill-listing ()
   "Erase and redraw the queue in the queue listing buffer."
   (with-current-buffer (youtube-dl--buffer)
     (let* ((inhibit-read-only t)
            (index 0)
+           (current-playlist nil)
            (active (youtube-dl--current))
            (string-audio (propertize "A" 'face 'youtube-dl-audio-content))
            (string-slow (propertize "S" 'face 'youtube-dl-slow))
@@ -689,7 +709,23 @@ all other items are made slow, and vice versa."
                (slow-p (youtube-dl-item-slow-p item))
                (total (youtube-dl-item-total item))
                (title (or (youtube-dl-item-title item) id))
+               (playlist (youtube-dl-item-playlist item))
+               (playlist-url (youtube-dl-item-playlist-url item))
                (start (point)))
+          (unless (equal playlist current-playlist)
+            (let ((indent-tabs-mode nil))
+              (when current-playlist
+                (indent-to youtube-dl-list-title-start-position)
+                (insert "--- End of playlist ---\n"))
+              (when playlist
+                (setq start (point))
+                (indent-to youtube-dl-list-title-start-position)
+                (insert "*** " (propertize playlist 'face 'youtube-dl-playlist-title) " ***")
+                (put-text-property start (point) 'youtube-dl-playlist-title playlist)
+                (put-text-property start (point) 'youtube-dl-playlist-url playlist-url)
+                (insert "\n")))
+            (setq start (point)
+                  current-playlist playlist))
           (insert
            (format "%-6.6s %-10.10s %s%s%s%s"
                    (or progress "0.0%")
@@ -720,7 +756,11 @@ all other items are made slow, and vice versa."
                      title)))
           (put-text-property start (point) 'youtube-dl-item-index index)
           (setq index (1+ index))
-          (insert "\n"))))))
+          (insert "\n")))
+      (when current-playlist
+        (let ((indent-tabs-mode nil))
+          (indent-to youtube-dl-list-title-start-position)
+          (insert "--- End of playlist ---\n"))))))
 
 ;;;###autoload
 (defun youtube-dl-list ()
@@ -728,9 +768,6 @@ all other items are made slow, and vice versa."
   (interactive)
   (youtube-dl--fill-listing)
   (pop-to-buffer (youtube-dl--buffer)))
-
-(defconst youtube-dl-list-title-start-position 18
-  "Title start position in the youtube-dl list buffer.")
 
 (defun youtube-dl-list-next-item ()
   "Move to the next item."
