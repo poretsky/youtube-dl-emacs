@@ -38,13 +38,9 @@
           (define-key youtube-dl-menu [customize]
             '("Customize" . youtube-dl-customize))
           (define-key youtube-dl-menu [schedule]
-            '("Schedule download" . youtube-dl))
+            '("Submit download" . youtube-dl))
           (define-key youtube-dl-menu [schedule-audio]
-            '("Schedule download audio" . youtube-dl-audio))
-          (define-key youtube-dl-menu [schedule-playlist]
-            '("Schedule download playlist" . youtube-dl-playlist))
-          (define-key youtube-dl-menu [schedule-playlist-audio]
-            '("Schedule download playlist audio" . youtube-dl-playlist-audio))
+            '("Submit download audio" . youtube-dl-audio))
           (define-key youtube-dl-menu [play]
             '("Play video clip" . youtube-dl-play-url))
           (define-key youtube-dl-menu [view]

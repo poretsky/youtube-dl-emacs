@@ -16,15 +16,12 @@ And then add the following line to your Emacs startup file:
 (load "path/to/this/directory/youtube-dl-autoloads")
 ```
 
-The `youtube-dl` command queues a single URL for download. Failures are
+The `youtube-dl` command queues a URL for download. The command
+`youtube-dl-audio` does the same, but only audio content is
+retrieved. If URL points to a playlist, all its items are added to the
+download queue with the respective index prefixes. Failures are
 retried up to `youtube-dl-max-failures`. Items can be paused or set to
-download at a slower rate (`youtube-dl-slow-rate`).
-
-The `youtube-dl-playlist` command queues an entire playlist, just as if
-you had individually queued each video on the playlist.
-
-Use `youtube-dl-audio` and `youtube-dl-playlist-audio` commands
-to download only audio content.
+be downloaded at a slower rate (`youtube-dl-slow-rate`).
 
 All these actions are also available via `menu / tools`.
 
@@ -41,14 +38,9 @@ references in this buffer can be navigated with <kbd>tab</kbd> and
 
 ## Limitations
 
-While youtube-dl supports a large number of video sites, this package
-only supports YouTube videos. This keeps things simple, and YouTube is
-really the only video hosting site with enough content worthy of using a
-video download manager.
-
 To display the size and progress, this package relies on a specific
 output format from youtube-dl. Using an external downloader
 (`--external-downloader`) breaks this, as can mucking around too much
-with the command line switches (`youtube-dl-arguments`).
+with the command line switches.
 
 [yt]: https://rg3.github.io/youtube-dl/

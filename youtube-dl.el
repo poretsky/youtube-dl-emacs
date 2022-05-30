@@ -32,12 +32,11 @@
 ;; single youtube-dl subprocess to download one video at a time. New
 ;; videos can be queued at any time.
 
-;; The `youtube-dl' command queues a URL for download. Failures are
-;; retried up to `youtube-dl-max-failures'. Items can be paused or set
-;; to be downloaded at a slower rate (`youtube-dl-slow-rate').
-
-;; The `youtube-dl-playlist' command queues an entire playlist, just
-;; as if you had individually queued each video on the playlist.
+;; The `youtube-dl' command queues a URL for download. The command
+;; `youtube-dl-audio' does the same, but only audio content is
+;; retrieved. Failures are retried up to `youtube-dl-max-failures'.
+;; Items can be paused or set to be downloaded at a slower rate
+;; (`youtube-dl-slow-rate').
 
 ;; The `youtube-dl-list' command displays a list of all active video
 ;; downloads. From this list, items under point can be canceled (d),
@@ -214,10 +213,6 @@ Any other value means to ask for each queueing item."
   "Remove ITEM from the queue."
   (setf youtube-dl-items (cl-delete item youtube-dl-items)))
 
-(defun youtube-dl--add (item)
-  "Add ITEM to the queue."
-  (setf youtube-dl-items (nconc youtube-dl-items (list item))))
-
 (defun youtube-dl--sentinel (proc status)
   (let ((item (plist-get (process-plist proc) :item)))
     (setf youtube-dl-process nil)
@@ -329,13 +324,6 @@ display purposes anyway."
           (setf youtube-dl-process proc))))
     (youtube-dl--redisplay)))
 
-(defun youtube-dl--id-from-url (url)
-  "Return the 11-character video ID for URL."
-  (save-match-data
-    (when (string-match
-           "\\(?:\\.be/\\|v=\\|v%3D\\|^\\)\\([-_a-zA-Z0-9]\\{11\\}\\)" url)
-      (match-string 1 url))))
-
 (defun youtube-dl--request-url ()
   "Interactively request URL from user."
   (read-from-minibuffer "URL: "
@@ -353,47 +341,6 @@ display purposes anyway."
   "Interactively request download arguments from user."
   (list (youtube-dl--request-url)
         (youtube-dl--request-immediate)))
-
-;;;###autoload
-(cl-defun youtube-dl
-    (url immediate &key title playlist playlist-url extract-audio (priority 0) directory destination slow)
-  "Queues URL for download using youtube-dl, returning the new item.
-If second argument is nil, the item starts as paused."
-  (interactive (youtube-dl--request-args))
-  (let* ((id (youtube-dl--id-from-url url))
-         (full-dir (expand-file-name (or directory "") youtube-dl-download-directory))
-         (item (youtube-dl-item--create :id id
-                                        :url url
-                                        :playlist playlist
-                                        :playlist-url playlist-url
-                                        :audio-p extract-audio
-                                        :failures 0
-                                        :priority priority
-                                        :paused-p (not immediate)
-                                        :slow-p slow
-                                        :directory full-dir
-                                        :destination destination
-                                        :title title)))
-    (prog1 item
-      (when id
-        (youtube-dl--add item)
-        (youtube-dl--run)))))
-
-;;;###autoload
-(cl-defun youtube-dl-audio
-    (url immediate &key title playlist playlist-url (priority 0) directory destination slow)
-  "Queues URL for download audio content using youtube-dl, returning the new item.
-If second argument is nil, the item starts as paused."
-  (interactive (youtube-dl--request-args))
-  (youtube-dl url immediate
-              :title title
-              :playlist playlist
-              :playlist-url playlist-url
-              :extract-audio t
-              :priority priority
-              :directory directory
-              :destination destination
-              :slow slow))
 
 (defun youtube-dl--playlist-list (url)
   "For each video, return one plist with :index, :id,
@@ -432,10 +379,11 @@ If second argument is nil, the item starts as paused."
     (cl-delete-if filter (cl-stable-sort copy #'< :key key))))
 
 ;;;###autoload
-(cl-defun youtube-dl-playlist
+(cl-defun youtube-dl
     (url immediate &key extract-audio directory (first 1) (priority 0) reverse slow)
-  "Add entire playlist to download queue, with index prefixes.
-If second argument is nil, the item starts as paused.
+  "Submit video pointed by URL to the download queue. If URL points
+to a playlist, all its items are added with index prefixes.
+If second argument is nil, the items start as paused.
 
 :extract-audio BOOL -- Extract audio content.
 
@@ -455,31 +403,44 @@ of reversed playlists.
     (if (null videos)
         (error "Failed to fetch playlist (%s)." url)
       (let* ((max (cl-loop for entry in videos
-                           maximize (plist-get entry :index)))
+                           maximize (or (plist-get entry :index) 0)))
              (width (1+ (floor (log max 10))))
-             (prefix-format (format "%%0%dd" width)))
+             (prefix-format (format "%%0%dd-" width)))
         (when reverse
           (setf videos (youtube-dl--playlist-reverse videos)))
         (dolist (video (youtube-dl--playlist-cutoff videos first))
           (let* ((index (plist-get video :index))
-                 (prefix (format prefix-format index))
-                 (title (format "%s-%s" prefix (plist-get video :title)))
-                 (dest (format "%s-%s" prefix "%(title)s-%(id)s.%(ext)s")))
-            (youtube-dl (plist-get video :url) immediate
+                 (playlist (plist-get video :playlist))
+                 (prefix (if (and playlist index)
+                             (format prefix-format index)
+                           ""))
+                 (title (format "%s%s" prefix (plist-get video :title)))
+                 (dest (format "%s%s" prefix "%(title)s-%(id)s.%(ext)s"))
+                 (full-dir (expand-file-name (or directory "") youtube-dl-download-directory))
+                 (item (youtube-dl-item--create
+                        :id (plist-get video :id)
+                        :url (plist-get video :url)
                         :title title
-                        :playlist (plist-get video :playlist)
-                        :playlist-url url
-                        :extract-audio extract-audio
+                        :playlist playlist
+                        :playlist-url (and playlist url)
+                        :audio-p extract-audio
+                        :failures 0
                         :priority priority
-                        :directory directory
-                        :destination dest
-                        :slow slow)))))))
+                        :paused-p (not immediate)
+                        :slow-p slow
+                        :directory full-dir
+                        :destination dest)))
+            (when (and (youtube-dl-item-id item)
+                       (youtube-dl-item-url item))
+              (setf youtube-dl-items (nconc youtube-dl-items (list item)))
+              (youtube-dl--run))))))))
 
 ;;;###autoload
-(cl-defun youtube-dl-playlist-audio
+(cl-defun youtube-dl-audio
     (url immediate &key directory (first 1) (priority 0) reverse slow)
-  "Add entire playlist to download queue, with index prefixes.
-Only audio content will be extracted.
+  "Submit video pointed by URL to the download queue. If URL points
+to a playlist, all its items are added with index prefixes.
+Only audio content will be retrieved.
 If second argument is nil, the item starts as paused.
 
 :directory PATH -- Destination directory for all videos.
@@ -493,13 +454,13 @@ of reversed playlists.
 
 :slow BOOL -- Start all download entries in slow mode."
   (interactive (youtube-dl--request-args))
-  (youtube-dl-playlist url immediate
-                       :extract-audio t
-                       :directory directory
-                       :first first
-                       :priority priority
-                       :reverse reverse
-                       :slow slow))
+  (youtube-dl url immediate
+              :extract-audio t
+              :directory directory
+              :first first
+              :priority priority
+              :reverse reverse
+              :slow slow))
 
 ;; List user interface:
 
