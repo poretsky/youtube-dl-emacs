@@ -37,6 +37,8 @@
 (declare-function youtube-dl--pointed-item "youtube-dl")
 (declare-function youtube-dl--request-url "youtube-dl")
 (declare-function youtube-dl-item-url "youtube-dl" (item))
+(declare-function youtube-dl-item-description "youtube-dl" (item))
+(declare-function youtube-dl-item-description-set "youtube-dl" (item text))
 (declare-function youtube-dl-play-url "youtube-dl-play" (url &key start))
 
 ;;;###autoload
@@ -72,49 +74,69 @@
   :group 'youtube-dl-view
   (use-local-map youtube-dl-view-mode-map))
 
-;;;###autoload
-(defun youtube-dl-view-url (url)
-  "Retrieve and show info from specified URL."
-  (interactive (youtube-dl--request-url))
-  (cl-declare (special youtube-dl-program youtube-dl-current-url))
+(defun youtube-dl-view--retrieve-description (url)
+  "Get description from URL and return it as a string."
+  (cl-declare (special youtube-dl-program))
+  (with-temp-buffer
+    (if (zerop (call-process youtube-dl-program nil t nil
+                             "--ignore-config"
+                             "--get-description"
+                             url))
+        (buffer-string)
+      "")))
+
+(defun youtube-dl-view--show-description (text url)
+  "Show a description represented by given text.
+Second argument specifies source URL for reference."
+  (cl-declare (special youtube-dl-current-url))
   (with-current-buffer (get-buffer-create " *youtube-dl view*")
     (youtube-dl-view-mode)
     (let ((window (get-buffer-window))
           (inhibit-read-only t))
       (erase-buffer)
-      (when (zerop (call-process youtube-dl-program nil t nil
-                                 "--ignore-config"
-                                 "--get-description"
-                                 url))
-        (goto-char (point-min))
-        (while
-            (search-forward-regexp
-             "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(\\(https?://\\)[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\([0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(\\.[0-9]+\\)?"
-             (point-max) t)
-          (cond
-           ((match-string 1)
-            (let ((link (bounds-of-thing-at-point 'email)))
-              (when link
-                (put-text-property (car link) (cdr link)
-                                   'face 'youtube-dl-view-mail))))
-           ((match-string 2)
-            (let ((link (bounds-of-thing-at-point 'url)))
-              (when link
-                (put-text-property (car link) (cdr link)
-                                   'face 'youtube-dl-view-link))))
-           (t (put-text-property (match-beginning 0) (match-end 0)
-                                 'face 'youtube-dl-play-start-time))))
-        (set (make-local-variable 'youtube-dl-current-url) url)
-        (setf (point) (point-min))
-        (when window
-          (set-window-point window (point-min)))
-        (pop-to-buffer (current-buffer))))))
+      (insert text)
+      (goto-char (point-min))
+      (while
+          (search-forward-regexp
+           "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(\\(https?://\\)[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\([0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(\\.[0-9]+\\)?"
+           (point-max) t)
+        (cond
+         ((match-string 1)
+          (let ((link (bounds-of-thing-at-point 'email)))
+            (when link
+              (put-text-property (car link) (cdr link)
+                                 'face 'youtube-dl-view-mail))))
+         ((match-string 2)
+          (let ((link (bounds-of-thing-at-point 'url)))
+            (when link
+              (put-text-property (car link) (cdr link)
+                                 'face 'youtube-dl-view-link))))
+         (t (put-text-property (match-beginning 0) (match-end 0)
+                               'face 'youtube-dl-play-start-time))))
+      (set (make-local-variable 'youtube-dl-current-url) url)
+      (setf (point) (point-min))
+      (when window
+        (set-window-point window (point-min)))
+      (pop-to-buffer (current-buffer)))))
+
+;;;###autoload
+(defun youtube-dl-view-url (url)
+  "Retrieve and show info from specified URL."
+  (interactive (youtube-dl--request-url))
+  (let ((text (youtube-dl-view--retrieve-description url)))
+    (youtube-dl-view--show-description text url)))
 
 ;;;###autoload
 (defun youtube-dl-view ()
   "Show info about an item under point."
   (interactive)
-  (youtube-dl-view-url (youtube-dl-item-url (youtube-dl--pointed-item))))
+  (let* ((item (youtube-dl--pointed-item))
+         (url (youtube-dl-item-url item))
+         (text (youtube-dl-item-description item)))
+    (unless text
+      (setq text (youtube-dl-view--retrieve-description url))
+      (youtube-dl-item-description-set item text))
+    (youtube-dl-view--show-description text url)))
 
 (defun youtube-dl-view-action ()
   "Performs an action associated with the reference under point."

@@ -179,12 +179,17 @@ Any other value means to ask for each queueing item."
   failures     ; Number of video download failures (integer)
   priority     ; Download priority (integer)
   title        ; Listing display title (string or nil)
+  description  ; Item description cache (string or nil)
   progress     ; Current download progress (string or nil)
   total        ; Total download size (string or nil)
   log          ; All program output (list of strings)
   log-end      ; Last log item (list of strings)
   paused-p     ; Non-nil if download is paused
   slow-p)      ; Non-nil if download should be rate limited
+
+(defun youtube-dl-item-description-set (item text)
+  "Set description text for specified item."
+  (setf (youtube-dl-item-description item) text))
 
 (defvar youtube-dl-items ()
   "List of all items still to be downloaded.")
@@ -344,7 +349,7 @@ display purposes anyway."
 
 (defun youtube-dl--playlist-list (url)
   "For each video, return one plist with :index, :id,
-:url, :playlist, :playlist-url, and :title."
+:url, :playlist, :playlist-url, :title, and :description."
   (with-temp-buffer
     (when (zerop (call-process youtube-dl-program nil t nil
                                "--ignore-config"
@@ -360,6 +365,7 @@ display purposes anyway."
                              :id    (plist-get video :id)
                              :url (plist-get video :original_url)
                              :playlist (plist-get video :playlist)
+                             :description (plist-get video :description)
                              :title (plist-get video :title))))))
 
 (defun youtube-dl--playlist-reverse (list)
@@ -420,6 +426,7 @@ of reversed playlists.
                  (item (youtube-dl-item--create
                         :id (plist-get video :id)
                         :url (plist-get video :url)
+                        :description (plist-get video :description)
                         :title title
                         :playlist playlist
                         :playlist-url (and playlist url)
