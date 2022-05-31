@@ -422,7 +422,11 @@ of reversed playlists.
                            ""))
                  (title (format "%s%s" prefix (plist-get video :title)))
                  (dest (format "%s%s" prefix "%(title)s-%(id)s.%(ext)s"))
-                 (full-dir (expand-file-name (or directory "") youtube-dl-download-directory))
+                 (full-dir (expand-file-name
+                            (or directory
+                                (and (not youtube-dl-restrict-filenames) playlist)
+                                "")
+                            youtube-dl-download-directory))
                  (item (youtube-dl-item--create
                         :id (plist-get video :id)
                         :url (plist-get video :url)
