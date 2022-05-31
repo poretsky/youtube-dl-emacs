@@ -46,7 +46,7 @@
   "YouTube video descriptions view settings."
   :group 'youtube-dl)
 
-(defface youtube-dl-play-start-time
+(defface youtube-dl-view-play-start-time
   '((t :inherit font-lock-builtin-face))
   "Face for highlighting play start time references."
   :group 'youtube-dl-view)
@@ -112,7 +112,7 @@ Second argument specifies source URL for reference."
               (put-text-property (car link) (cdr link)
                                  'face 'youtube-dl-view-link))))
          (t (put-text-property (match-beginning 0) (match-end 0)
-                               'face 'youtube-dl-play-start-time))))
+                               'face 'youtube-dl-view-play-start-time))))
       (set (make-local-variable 'youtube-dl-current-url) url)
       (setf (point) (point-min))
       (when window
@@ -145,7 +145,7 @@ Second argument specifies source URL for reference."
   (unless (eq major-mode 'youtube-dl-view-mode)
     (error "Not in youtube-dl view buffer."))
   (cond
-   ((eq (get-text-property (point) 'face) 'youtube-dl-play-start-time)
+   ((eq (get-text-property (point) 'face) 'youtube-dl-view-play-start-time)
     (youtube-dl-play-url youtube-dl-current-url
                          :start (buffer-substring-no-properties
                                  (line-beginning-position)
@@ -164,7 +164,7 @@ Second argument specifies source URL for reference."
   (let ((start (point))
         (pos (next-single-property-change (point) 'face)))
     (while pos
-      (if (or (eq 'youtube-dl-play-start-time (get-text-property pos 'face))
+      (if (or (eq 'youtube-dl-view-play-start-time (get-text-property pos 'face))
               (eq 'youtube-dl-view-link (get-text-property pos 'face))
               (eq 'youtube-dl-view-mail (get-text-property pos 'face)))
           (progn
@@ -183,7 +183,7 @@ Second argument specifies source URL for reference."
         (pos (previous-single-property-change (point) 'face)))
     (while pos
       (cond
-       ((eq 'youtube-dl-play-start-time (get-text-property pos 'face))
+       ((eq 'youtube-dl-view-play-start-time (get-text-property pos 'face))
         (goto-char pos)
         (beginning-of-line)
         (setq pos nil))
