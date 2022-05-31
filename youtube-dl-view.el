@@ -37,6 +37,9 @@
 (declare-function youtube-dl--pointed-item "youtube-dl")
 (declare-function youtube-dl--request-url "youtube-dl")
 (declare-function youtube-dl-item-url "youtube-dl" (item))
+(declare-function youtube-dl-item-title "youtube-dl" (item))
+(declare-function youtube-dl-item-filesize "youtube-dl" (item))
+(declare-function youtube-dl-item-duration "youtube-dl" (item))
 (declare-function youtube-dl-item-description "youtube-dl" (item))
 (declare-function youtube-dl-item-description-set "youtube-dl" (item text))
 (declare-function youtube-dl-play-url "youtube-dl-play" (url &key start))
@@ -59,6 +62,21 @@
 (defface youtube-dl-view-mail
   '((t :inherit font-lock-variable-name-face))
   "Face for highlighting e-mail addresses."
+  :group 'youtube-dl-view)
+
+(defface youtube-dl-view-title
+  '((t :inherit font-lock-comment-face))
+  "Face for highlighting item title."
+  :group 'youtube-dl-view)
+
+(defface youtube-dl-view-header
+  '((t :inherit font-lock-comment-delimiter-face))
+  "Face for highlighting header titles."
+  :group 'youtube-dl-view)
+
+(defface youtube-dl-view-header-value
+  '((t :inherit font-lock-comment-face))
+  "Face for highlighting header values."
   :group 'youtube-dl-view)
 
 (defvar youtube-dl-view-mode-map
@@ -85,7 +103,8 @@
         (buffer-string)
       "")))
 
-(defun youtube-dl-view--show-description (text url)
+(cl-defun youtube-dl-view--show-description
+    (text url &key title filesize duration)
   "Show a description represented by given text.
 Second argument specifies source URL for reference."
   (cl-declare (special youtube-dl-current-url))
@@ -94,6 +113,22 @@ Second argument specifies source URL for reference."
     (let ((window (get-buffer-window))
           (inhibit-read-only t))
       (erase-buffer)
+      (when title
+        (setq header-line-format
+              (propertize title 'face 'youtube-dl-view-title)))
+      (when filesize
+        (insert (propertize "FileSize" 'face 'youtube-dl-view-header)
+                "  "
+                (propertize (format "%d" filesize) 'face 'youtube-dl-view-header-value)
+                "\n"))
+      (when duration
+        (insert (propertize "Duration" 'face 'youtube-dl-view-header)
+                "  "
+                (propertize (format-time-string "%T" (seconds-to-time duration) t)
+                            'face 'youtube-dl-view-header-value)
+                "\n"))
+      (when (> (point) (point-min))
+        (insert "\n"))
       (insert text)
       (goto-char (point-min))
       (while
@@ -136,7 +171,10 @@ Second argument specifies source URL for reference."
     (unless text
       (setq text (youtube-dl-view--retrieve-description url))
       (youtube-dl-item-description-set item text))
-    (youtube-dl-view--show-description text url)))
+    (youtube-dl-view--show-description text url
+                                       :title (youtube-dl-item-title item)
+                                       :filesize (youtube-dl-item-filesize item)
+                                       :duration (youtube-dl-item-duration item))))
 
 (defun youtube-dl-view-action ()
   "Performs an action associated with the reference under point."

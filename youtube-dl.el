@@ -179,6 +179,8 @@ Any other value means to ask for each queueing item."
   failures     ; Number of video download failures (integer)
   priority     ; Download priority (integer)
   title        ; Listing display title (string or nil)
+  filesize     ; Declared file size (number or nil)
+  duration     ; Declared duration (number or nil)
   description  ; Item description cache (string or nil)
   progress     ; Current download progress (string or nil)
   total        ; Total download size (string or nil)
@@ -366,6 +368,8 @@ display purposes anyway."
                              :url (plist-get video :original_url)
                              :playlist (plist-get video :playlist)
                              :description (plist-get video :description)
+                             :filesize (plist-get video :filesize)
+                             :duration (plist-get video :duration)
                              :title (plist-get video :title))))))
 
 (defun youtube-dl--playlist-reverse (list)
@@ -431,6 +435,8 @@ of reversed playlists.
                         :id (plist-get video :id)
                         :url (plist-get video :url)
                         :description (plist-get video :description)
+                        :filesize (plist-get video :filesize)
+                        :duration (plist-get video :duration)
                         :title title
                         :playlist playlist
                         :playlist-url (and playlist url)
