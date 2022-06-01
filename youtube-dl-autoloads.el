@@ -48,3 +48,9 @@
           (define-key youtube-dl-menu [list]
             '("Show download queue" . youtube-dl-list))
           youtube-dl-menu)))
+
+;; Key bindings for w3m:
+(eval-after-load 'w3m
+  '(progn
+     (define-key w3m-mode-map "y" #'youtube-dl-w3m-menu-popup)
+     (define-key w3m-mode-map "\M-\r" #'youtube-dl-w3m-dispatch)))

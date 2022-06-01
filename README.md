@@ -34,6 +34,16 @@ be loaded and shown in a separate buffer (<kbd>RET</kbd>). Highlighted
 references in this buffer can be navigated with <kbd>tab</kbd> and
 <kbd>backtab</kbd> and activated with <kbd>RET</kbd>.
 
+Integration with w3m web browser is also provided. Two additional
+keystrokes are available in `w3m-mode`: <kbd>y</kbd> pops up the menu
+of youtube-dl actions and <kbd>M-RET</kbd> pressed on an anchor
+suggests an action applicable to the anchor depending on the URL
+nature or visit the URL with `w3m-view-this-url`. When youtube-dl
+playback or download submission is invoked on an anchor, the anchor
+URL is used. Otherwise the URL is requested from user. After download
+submission the download listing pops up with pointer positioned on the
+newly added item.
+
 ![](https://i.imgur.com/wDWNsMf.png)
 
 ## Limitations

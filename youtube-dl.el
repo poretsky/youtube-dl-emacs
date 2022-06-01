@@ -54,7 +54,8 @@
 ;;;###autoload
 (defgroup youtube-dl
   '((youtube-dl-play custom-group)
-    (youtube-dl-view custom-group))
+    (youtube-dl-view custom-group)
+    (youtube-dl-w3m custom-group))
   "YouTube video download queue control options."
   :group 'external)
 
