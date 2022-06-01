@@ -663,11 +663,18 @@ all other items are made slow, and vice versa."
 (defconst youtube-dl-list-title-start-position 18
   "Title start position in the youtube-dl list buffer.")
 
-(defun youtube-dl--fill-listing ()
-  "Erase and redraw the queue in the queue listing buffer."
+(defun youtube-dl--fill-listing (&optional position)
+  "Erase and redraw the queue in the queue listing buffer.
+Optional argument specifies what to do with the cursor position
+after filling. If it is `nil', cursor is leaved at the buffer end.
+Integer value is treated as an item index. Cursor will be positioned
+on this item or on playlist header if the item is the first one
+in the playlist. Any other non-nil value implies positioning on the
+active item or at the beginning of buffer if no active item exists."
   (with-current-buffer (youtube-dl--buffer)
     (let* ((inhibit-read-only t)
            (index 0)
+           (target-point nil)
            (current-playlist nil)
            (active (youtube-dl--current))
            (string-audio (propertize "A" 'face 'youtube-dl-audio-content))
@@ -695,6 +702,8 @@ all other items are made slow, and vice versa."
               (when playlist
                 (setq start (point))
                 (indent-to youtube-dl-list-title-start-position)
+                (when (and (numberp position) (= index position))
+                  (setq target-point (point)))
                 (insert "*** " (propertize playlist 'face 'youtube-dl-playlist-title) " ***")
                 (put-text-property start (point) 'youtube-dl-playlist-title playlist)
                 (put-text-property start (point) 'youtube-dl-playlist-url playlist-url)
@@ -730,18 +739,32 @@ all other items are made slow, and vice versa."
                        (propertize title 'face 'youtube-dl-active)
                      title)))
           (put-text-property start (point) 'youtube-dl-item-index index)
+          (when (and (null target-point)
+                     (or (and (numberp position) (= index position))
+                         (and position (eq active item))))
+            (setq target-point (+ start youtube-dl-list-title-start-position)))
           (setq index (1+ index))
           (insert "\n")))
       (when current-playlist
         (let ((indent-tabs-mode nil))
           (indent-to youtube-dl-list-title-start-position)
-          (insert "--- End of playlist ---\n"))))))
+          (insert "--- End of playlist ---\n")))
+      (if target-point
+          (goto-char target-point)
+        (when position
+          (goto-char (+ (point-min) youtube-dl-list-title-start-position)))))))
 
 ;;;###autoload
-(defun youtube-dl-list ()
-  "Display a list of all videos queued for download."
+(defun youtube-dl-list (&optional position)
+  "Display a list of all videos queued for download.
+Optional argument specifies what to do with the cursor position
+afterwards. Integer value is treated as an item index. Cursor
+will be positioned on this item or on playlist header if the item
+is the first one in the playlist. Any non-number value implies
+positioning on the active item or at the beginning of buffer if
+no active item exists."
   (interactive)
-  (youtube-dl--fill-listing)
+  (youtube-dl--fill-listing (or (and (numberp position) position) t))
   (pop-to-buffer (youtube-dl--buffer)))
 
 (defun youtube-dl-list-next-item ()
