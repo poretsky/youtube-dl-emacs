@@ -42,9 +42,9 @@
           (define-key youtube-dl-menu [schedule-audio]
             '("Submit download audio" . youtube-dl-audio))
           (define-key youtube-dl-menu [play]
-            '("Play video clip" . youtube-dl-play-url))
+            '("Play video clip" . youtube-dl-play))
           (define-key youtube-dl-menu [view]
-            '("View video clip info" . youtube-dl-view-url))
+            '("View video clip info" . youtube-dl-view))
           (define-key youtube-dl-menu [list]
             '("Show download queue" . youtube-dl-list))
           youtube-dl-menu)))

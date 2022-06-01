@@ -34,7 +34,7 @@
 (declare-function youtube-dl "youtube-dl" (url immediate &rest args))
 (declare-function youtube-dl-list "youtube-dl" (&optional position))
 (declare-function youtube-dl--request-immediate "youtube-dl")
-(declare-function youtube-dl-play-url "youtube-dl" (url))
+(declare-function youtube-dl-play "youtube-dl" (url))
 (declare-function w3m-view-this-url "w3m")
 
 ;;;###autoload
@@ -151,7 +151,7 @@ at the newly added items."
 an anchor at point. If no anchor exists at point, requests an URL from
 user suggesting reasonable default."
   (interactive (list (youtube-dl-w3m--guess-url)))
-  (youtube-dl-play-url url))
+  (youtube-dl-play url))
 
 (defvar youtube-dl-w3m-menu
   (let ((menu (make-sparse-keymap "YouTube download and playback")))
@@ -183,7 +183,7 @@ Uses `w3m-view-this-url' as a fallback."
            (youtube-dl-w3m--playable-p url)
            (or (eq youtube-dl-w3m-auto-play 'always)
                (y-or-n-p "Start playback? ")))
-      (youtube-dl-play-url url))
+      (youtube-dl-play url))
      ((and youtube-dl-w3m-auto-download
            (youtube-dl-w3m--downloadable-p url)
            (or (eq youtube-dl-w3m-auto-download 'always)

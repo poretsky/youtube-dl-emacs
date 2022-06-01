@@ -333,11 +333,14 @@ display purposes anyway."
     (youtube-dl--redisplay)))
 
 (defun youtube-dl--request-url ()
-  "Interactively request URL from user."
-  (read-from-minibuffer "URL: "
-                        (or (thing-at-point 'url)
-                            (when interprogram-paste-function
-                              (funcall interprogram-paste-function)))))
+  "Interactively request URL from user. Being invoked in the listing
+buffer silently extract it from the item under point."
+  (or (and (eq (current-buffer) (youtube-dl--buffer))
+           (youtube-dl-item-url (youtube-dl--pointed-item)))
+      (read-from-minibuffer "URL: "
+                            (or (thing-at-point 'url)
+                                (when interprogram-paste-function
+                                  (funcall interprogram-paste-function))))))
 
 (defun youtube-dl--request-immediate ()
   "Ask user about immediate download if necessary."

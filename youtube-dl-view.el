@@ -25,8 +25,9 @@
 ;; This module shows video clip info in a separate buffer. In this
 ;; buffer you can navigate and activate highlighted references.
 
-;; The `youtube-dl-view-url' command retrieves video description
-;; from specified URL and shows it.
+;; The `youtube-dl-view' command retrieves video description
+;; from specified URL or from an item under point in the download
+;; list and shows it.
 
 ;;; Code:
 
@@ -34,15 +35,15 @@
 (cl-eval-when '(load)
   (require 'youtube-dl))
 
+(declare-function youtube-dl--buffer "youtube-dl")
 (declare-function youtube-dl--pointed-item "youtube-dl")
 (declare-function youtube-dl--request-url "youtube-dl")
-(declare-function youtube-dl-item-url "youtube-dl" (item))
 (declare-function youtube-dl-item-title "youtube-dl" (item))
 (declare-function youtube-dl-item-filesize "youtube-dl" (item))
 (declare-function youtube-dl-item-duration "youtube-dl" (item))
 (declare-function youtube-dl-item-description "youtube-dl" (item))
 (declare-function youtube-dl-item-description-set "youtube-dl" (item text))
-(declare-function youtube-dl-play-url "youtube-dl-play" (url &key start))
+(declare-function youtube-dl-play "youtube-dl-play" (url &key start))
 
 ;;;###autoload
 (defgroup youtube-dl-view ()
@@ -155,26 +156,24 @@ Second argument specifies source URL for reference."
       (pop-to-buffer (current-buffer)))))
 
 ;;;###autoload
-(defun youtube-dl-view-url (url)
-  "Retrieve and show info from specified URL."
-  (interactive (youtube-dl--request-url))
-  (let ((text (youtube-dl-view--retrieve-description url)))
-    (youtube-dl-view--show-description text url)))
-
-;;;###autoload
-(defun youtube-dl-view ()
-  "Show info about an item under point."
-  (interactive)
-  (let* ((item (youtube-dl--pointed-item))
-         (url (youtube-dl-item-url item))
-         (text (youtube-dl-item-description item)))
+(defun youtube-dl-view (url)
+  "Retrieves and shows info from specified URL. Being invoked in the
+download listing shows info for an item under point."
+  (interactive (list (youtube-dl--request-url)))
+  (let* ((item (and (eq (current-buffer) (youtube-dl--buffer))
+                    (youtube-dl--pointed-item)))
+         (title (youtube-dl-item-title item))
+         (filesize (youtube-dl-item-filesize item))
+         (duration (youtube-dl-item-duration item))
+         (text (and item (youtube-dl-item-description item))))
     (unless text
       (setq text (youtube-dl-view--retrieve-description url))
-      (youtube-dl-item-description-set item text))
+      (when item
+        (youtube-dl-item-description-set item text)))
     (youtube-dl-view--show-description text url
-                                       :title (youtube-dl-item-title item)
-                                       :filesize (youtube-dl-item-filesize item)
-                                       :duration (youtube-dl-item-duration item))))
+                                       :title title
+                                       :filesize filesize
+                                       :duration duration)))
 
 (defun youtube-dl-view-action ()
   "Performs an action associated with the reference under point."
@@ -184,7 +183,7 @@ Second argument specifies source URL for reference."
     (error "Not in youtube-dl view buffer."))
   (cond
    ((eq (get-text-property (point) 'face) 'youtube-dl-view-play-start-time)
-    (youtube-dl-play-url youtube-dl-current-url
+    (youtube-dl-play youtube-dl-current-url
                          :start (buffer-substring-no-properties
                                  (line-beginning-position)
                                  (or (next-single-property-change (point) 'face) (point-max)))))

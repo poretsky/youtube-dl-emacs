@@ -25,10 +25,8 @@
 ;; This module plays video clips with mpv player and youtube-dl
 ;; command line program, which serves as its back end.
 
-;; The `youtube-dl-play-url' command starts playback from specified URL.
-
 ;; The `youtube-dl-play' command starts playback of an item
-;; under point in the youtube-dl download list.
+;; under point in the youtube-dl download list or from specified URL.
 
 ;;; Code:
 
@@ -36,9 +34,7 @@
 (cl-eval-when '(load)
   (require 'youtube-dl))
 
-(declare-function youtube-dl--pointed-item "youtube-dl")
 (declare-function youtube-dl--request-url "youtube-dl")
-(declare-function youtube-dl-item-url "youtube-dl" (item))
 
 ;;;###autoload
 (defgroup youtube-dl-play ()
@@ -71,11 +67,12 @@
   (message "Process %s %s" (process-name process) event))
 
 ;;;###autoload
-(cl-defun youtube-dl-play-url (url &key start)
-  "Plays video from specified URL.
+(cl-defun youtube-dl-play (url &key start)
+  "Plays video from specified URL. Being invoked interactively
+in the download list plays video under point.
 
 :start -- Start time specification string."
-  (interactive (youtube-dl--request-url))
+  (interactive (list (youtube-dl--request-url)))
   (let ((proc
          (apply #'start-process "mpv" nil youtube-dl-play-program
                 "--no-terminal" "--ytdl"
@@ -86,12 +83,6 @@
                          `("--start" ,start))
                        `(,url)))))
     (set-process-sentinel proc #'youtube-dl-play--sentinel)))
-
-;;;###autoload
-(defun youtube-dl-play ()
-  "Plays video under point from the download list."
-  (interactive)
-  (youtube-dl-play-url (youtube-dl-item-url (youtube-dl--pointed-item))))
 
 (provide 'youtube-dl-play)
 
