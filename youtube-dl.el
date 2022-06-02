@@ -551,11 +551,23 @@ then playlist will be reversed.
     (kill-new url)
     (message "Yanked %s" url)))
 
-(defun youtube-dl-list-kill ()
-  "Remove the selected item from the queue."
-  (interactive)
-  (youtube-dl--remove (youtube-dl--pointed-item))
-  (youtube-dl--run))
+(defun youtube-dl-list-kill (&optional delete)
+  "Remove the selected item from the queue. If optional argument
+is non-nil, delete associated files as well."
+  (interactive (list (yes-or-no-p "Delete associated files as well? ")))
+  (let ((item (youtube-dl--pointed-item)))
+    (youtube-dl--remove item)
+    (youtube-dl--run)
+    (when (and delete
+               (file-accessible-directory-p (youtube-dl-item-directory item)))
+      (let ((default-directory (youtube-dl-item-directory item))
+            (pattern (format "%s-%s.*"
+                             (if youtube-dl-restrict-filenames
+                                 "*"
+                               (youtube-dl-item-title item))
+                             (youtube-dl-item-id item))))
+        (dolist (file (file-expand-wildcards pattern))
+          (delete-file file))))))
 
 (defun youtube-dl-list-priority-modify (delta)
   "Change priority of item under point by DELTA."
