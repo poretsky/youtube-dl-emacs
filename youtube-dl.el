@@ -351,7 +351,8 @@ buffer silently extract it from the item under point."
 (defun youtube-dl--request-args ()
   "Interactively request download arguments from user."
   (list (youtube-dl--request-url)
-        (youtube-dl--request-immediate)))
+        (youtube-dl--request-immediate)
+        current-prefix-arg))
 
 (defun youtube-dl--playlist-list (url)
   "For each video, return one plist with :index, :id,
@@ -394,10 +395,14 @@ buffer silently extract it from the item under point."
 
 ;;;###autoload
 (cl-defun youtube-dl
-    (url immediate &key extract-audio directory (first 1) (priority 0) reverse slow)
+    (url
+     &optional immediate reverse
+     &key extract-audio directory (first 1) (priority 0) slow)
   "Submit video pointed by URL to the download queue. If URL points
 to a playlist, all its items are added with index prefixes.
 If second argument is nil, the items start as paused.
+If URL points to a playlist and third argument is non-nil
+then playlist will be reversed.
 
 :extract-audio BOOL -- Extract audio content.
 
@@ -406,9 +411,6 @@ If second argument is nil, the items start as paused.
 :first INDEX -- Start downloading from a given one-based index.
 
 :priority PRIORITY -- Use this priority for all download entries.
-
-:reverse BOOL -- Reverse the video numbering, solving the problem
-of reversed playlists.
 
 :slow BOOL -- Start all download entries in slow mode."
   (interactive (youtube-dl--request-args))
@@ -458,11 +460,15 @@ of reversed playlists.
 
 ;;;###autoload
 (cl-defun youtube-dl-audio
-    (url immediate &key directory (first 1) (priority 0) reverse slow)
+    (url
+     &optional immediate reverse
+     &key directory (first 1) (priority 0) slow)
   "Submit video pointed by URL to the download queue. If URL points
 to a playlist, all its items are added with index prefixes.
 Only audio content will be retrieved.
 If second argument is nil, the item starts as paused.
+If URL points to a playlist and third argument is non-nil
+then playlist will be reversed.
 
 :directory PATH -- Destination directory for all videos.
 
@@ -470,17 +476,13 @@ If second argument is nil, the item starts as paused.
 
 :priority PRIORITY -- Use this priority for all download entries.
 
-:reverse BOOL -- Reverse the video numbering, solving the problem
-of reversed playlists.
-
 :slow BOOL -- Start all download entries in slow mode."
   (interactive (youtube-dl--request-args))
-  (youtube-dl url immediate
+  (youtube-dl url immediate reverse
               :extract-audio t
               :directory directory
               :first first
               :priority priority
-              :reverse reverse
               :slow slow))
 
 ;; List user interface:

@@ -19,9 +19,11 @@ And then add the following line to your Emacs startup file:
 The `youtube-dl` command queues a URL for download. The command
 `youtube-dl-audio` does the same, but only audio content is
 retrieved. If URL points to a playlist, all its items are added to the
-download queue with the respective index prefixes. Failures are
-retried up to `youtube-dl-max-failures`. Items can be paused or set to
-be downloaded at a slower rate (`youtube-dl-slow-rate`).
+download queue with the respective index prefixes. If these commands
+are called with prefix argument (<kbd>C-u</kbd>) playlist order will
+be reversed. Failures are retried up to
+`youtube-dl-max-failures`. Items can be paused or set to be downloaded
+at a slower rate (`youtube-dl-slow-rate`).
 
 All these actions are also available via `menu / tools`.
 

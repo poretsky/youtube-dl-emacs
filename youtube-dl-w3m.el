@@ -31,7 +31,7 @@
   (require 'youtube-dl)
   (require 'w3m))
 
-(declare-function youtube-dl "youtube-dl" (url immediate &rest args))
+(declare-function youtube-dl "youtube-dl" (url &rest args))
 (declare-function youtube-dl-list "youtube-dl" (&optional position))
 (declare-function youtube-dl--request-immediate "youtube-dl")
 (declare-function youtube-dl-play "youtube-dl" (url))
@@ -115,36 +115,39 @@ started as paused."
 (defun youtube-dl-w3m--request-args ()
   "Interactively request download arguments from user."
   (list (youtube-dl-w3m--guess-url)
-        (youtube-dl--request-immediate)))
+        (youtube-dl--request-immediate)
+        current-prefix-arg))
 
-(defun youtube-dl-w3m (url &optional immediate audio-only)
+(defun youtube-dl-w3m (url &optional immediate reverse audio-only)
   "Schedules an URL for youtube-dl download. Being called interactively
 uses an anchor at point. If no anchor exists at point, requests
 an URL from user suggesting reasonable default. If second argument
 is non-nil, download starts immediately. Otherwise it is queued as
-paused. If optional third argument is non-nil, only audio content
-is downloaded.
+paused. If URL points to a playlist and third argument is non-nil
+then playlist will be reversed. If third argument is non-nil, only
+audio content is downloaded.
 
 On completion download list is shown with point positioned
 at the newly added items."
   (interactive (youtube-dl-w3m--request-args))
   (cl-declare (special youtube-dl-items))
   (let ((position (length youtube-dl-items)))
-    (youtube-dl url immediate
+    (youtube-dl url immediate reverse
                 :extract-audio audio-only)
     (youtube-dl-list position)))
 
-(defun youtube-dl-w3m-audio (url immediate)
+(defun youtube-dl-w3m-audio (url &optional immediate reverse)
   "Schedules an URL for youtube-dl download audio content. Being called
 interactively uses an anchor at point. If no anchor exists at point,
 requests an URL from user suggesting reasonable default. If second
 argument is non-nil, download starts immediately. Otherwise it is
-queued as paused.
+queued as paused. If URL points to a playlist and third argument
+is non-nil then playlist will be reversed.
 
 On completion download list is shown with point positioned
 at the newly added items."
   (interactive (youtube-dl-w3m--request-args))
-  (youtube-dl-w3m url immediate t))
+  (youtube-dl-w3m url immediate reverse t))
 
 (defun youtube-dl-w3m-play (url)
   "Starts playback from specified URL. Being called interactively uses
