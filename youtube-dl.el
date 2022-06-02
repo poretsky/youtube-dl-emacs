@@ -368,15 +368,15 @@ buffer silently extract it from the item under point."
                for index upfrom 1
                for video = (ignore-errors (json-read))
                while video
-               collect (list :index index
-                             :id    (plist-get video :id)
-                             :url (or (plist-get video :webpage_url)
-                                      (plist-get video :original_url))
-                             :playlist (plist-get video :playlist)
+               collect (list :index       index
+                             :id          (plist-get video :id)
+                             :url         (or (plist-get video :webpage_url)
+                                              (plist-get video :original_url))
+                             :playlist    (plist-get video :playlist)
                              :description (plist-get video :description)
-                             :filesize (plist-get video :filesize)
-                             :duration (plist-get video :duration)
-                             :title (plist-get video :title))))))
+                             :filesize    (plist-get video :filesize)
+                             :duration    (plist-get video :duration)
+                             :title       (plist-get video :title))))))
 
 (defun youtube-dl--playlist-reverse (list)
   "Return a copy of LIST with the indexes reversed."
