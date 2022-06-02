@@ -250,10 +250,9 @@ display purposes anyway."
 
 (defun youtube-dl--filter (proc output)
   (let* ((item (plist-get (process-plist proc) :item))
-         (out (replace-regexp-in-string "\033[^ ]*m" "" output))
-         (progress (youtube-dl--progress out))
+         (progress (youtube-dl--progress output))
          (destination (unless (youtube-dl-item-title item)
-                        (youtube-dl--destination out))))
+                        (youtube-dl--destination output))))
     ;; Append to program log.
     (let ((logged (list output)))
       (if (youtube-dl-item-log item)
@@ -309,7 +308,8 @@ display purposes anyway."
                (proc (progn
                        (mkdir default-directory t)
                        (apply #'start-process
-                              "youtube-dl" nil youtube-dl-program "--newline"
+                              "youtube-dl" nil youtube-dl-program
+                              "--newline" "--no-color"
                               (nconc
                                (when youtube-dl-omit-mtime
                                  (list "--no-mtime"))
