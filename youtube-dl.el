@@ -370,7 +370,8 @@ buffer silently extract it from the item under point."
                while video
                collect (list :index index
                              :id    (plist-get video :id)
-                             :url (plist-get video :original_url)
+                             :url (or (plist-get video :webpage_url)
+                                      (plist-get video :original_url))
                              :playlist (plist-get video :playlist)
                              :description (plist-get video :description)
                              :filesize (plist-get video :filesize)
