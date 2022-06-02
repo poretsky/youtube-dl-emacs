@@ -67,11 +67,10 @@
   (message "Process %s %s" (process-name process) event))
 
 ;;;###autoload
-(cl-defun youtube-dl-play (url &key start)
+(defun youtube-dl-play (url &optional start)
   "Plays video from specified URL. Being invoked interactively
-in the download list plays video under point.
-
-:start -- Start time specification string."
+in the download list plays video under point. Optional second
+argument, if non-nil, is treated as start time specification string."
   (interactive (list (youtube-dl--request-url)))
   (let ((proc
          (apply #'start-process "mpv" nil youtube-dl-play-program

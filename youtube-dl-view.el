@@ -43,7 +43,7 @@
 (declare-function youtube-dl-item-duration "youtube-dl" (item))
 (declare-function youtube-dl-item-description "youtube-dl" (item))
 (declare-function youtube-dl-item-description-set "youtube-dl" (item text))
-(declare-function youtube-dl-play "youtube-dl-play" (url &key start))
+(declare-function youtube-dl-play "youtube-dl-play" (url &optional start))
 
 ;;;###autoload
 (defgroup youtube-dl-view ()
@@ -184,9 +184,9 @@ download listing shows info for an item under point."
   (cond
    ((eq (get-text-property (point) 'face) 'youtube-dl-view-play-start-time)
     (youtube-dl-play youtube-dl-current-url
-                         :start (buffer-substring-no-properties
-                                 (line-beginning-position)
-                                 (or (next-single-property-change (point) 'face) (point-max)))))
+                     (buffer-substring-no-properties
+                      (line-beginning-position)
+                      (or (next-single-property-change (point) 'face) (point-max)))))
    ((eq (get-text-property (point) 'face) 'youtube-dl-view-link)
     (browse-url-at-point))
    ((eq (get-text-property (point) 'face) 'youtube-dl-view-mail)
