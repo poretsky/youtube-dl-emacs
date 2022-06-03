@@ -34,7 +34,9 @@
 (cl-eval-when (load)
   (require 'youtube-dl))
 
-(declare-function youtube-dl--request-url "youtube-dl")
+(declare-function youtube-dl--thing "youtube-dl")
+(declare-function youtube-dl-item-p "youtube-dl" (item))
+(declare-function youtube-dl-item-url "youtube-dl" (item))
 
 ;;;###autoload
 (defgroup youtube-dl-play ()
@@ -67,20 +69,24 @@
   (message "Process %s %s" (process-name process) event))
 
 ;;;###autoload
-(defun youtube-dl-play (url &optional start)
-  "Plays video from specified URL. Being invoked interactively
-in the download list plays video under point. Optional second
+(defun youtube-dl-play (thing &optional start)
+  "Plays video from specified URL or, being invoked interactively
+in the download list, from an item under point. Optional second
 argument, if non-nil, is treated as start time specification string."
-  (interactive (list (youtube-dl--request-url)))
-  (let ((proc
-         (apply #'start-process "mpv" nil youtube-dl-play-program
-                "--no-terminal" "--ytdl"
-                (nconc (list youtube-dl-play-fullscreen)
-                       (when youtube-dl-play-format
-                         `("--ytdl-format" ,youtube-dl-play-format))
-                       (when start
-                         `("--start" ,start))
-                       `(,url)))))
+  (interactive (youtube-dl--thing))
+  (let* ((url
+          (if (youtube-dl-item-p thing)
+              (youtube-dl-item-url thing)
+            thing))
+         (proc
+          (apply #'start-process "mpv" nil youtube-dl-play-program
+                 "--no-terminal" "--ytdl"
+                 (nconc (list youtube-dl-play-fullscreen)
+                        (when youtube-dl-play-format
+                          `("--ytdl-format" ,youtube-dl-play-format))
+                        (when start
+                          `("--start" ,start))
+                        `(,url)))))
     (set-process-sentinel proc #'youtube-dl-play--sentinel)))
 
 (provide 'youtube-dl-play)

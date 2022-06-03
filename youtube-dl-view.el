@@ -35,9 +35,10 @@
 (cl-eval-when (load)
   (require 'youtube-dl))
 
-(declare-function youtube-dl--buffer "youtube-dl")
-(declare-function youtube-dl--pointed-item "youtube-dl")
-(declare-function youtube-dl--request-url "youtube-dl")
+(declare-function youtube-dl--thing "youtube-dl")
+(declare-function youtube-dl--playlist-list "youtube-dl" (url))
+(declare-function youtube-dl-item-p "youtube-dl" (item))
+(declare-function youtube-dl-item-url "youtube-dl" (item))
 (declare-function youtube-dl-item-title "youtube-dl" (item))
 (declare-function youtube-dl-item-filesize "youtube-dl" (item))
 (declare-function youtube-dl-item-duration "youtube-dl" (item))
@@ -156,20 +157,38 @@ Second argument specifies source URL for reference."
       (pop-to-buffer (current-buffer)))))
 
 ;;;###autoload
-(defun youtube-dl-view (url)
-  "Retrieves and shows info from specified URL. Being invoked in the
-download listing shows info for an item under point."
-  (interactive (list (youtube-dl--request-url)))
-  (let* ((item (and (eq (current-buffer) (youtube-dl--buffer))
-                    (youtube-dl--pointed-item)))
-         (title (youtube-dl-item-title item))
-         (filesize (youtube-dl-item-filesize item))
-         (duration (youtube-dl-item-duration item))
-         (text (and item (youtube-dl-item-description item))))
-    (unless text
+(defun youtube-dl-view (thing)
+  "Retrieves and shows info from specified URL or, being invoked
+in the download listing, for an item under point."
+  (interactive (youtube-dl--thing))
+  (let* ((item
+          (if (stringp thing)
+              (let ((items (youtube-dl--playlist-list thing)))
+                (and (listp items) (car items)))
+            thing))
+         (title
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-title item)
+            (and item (plist-get item :title))))
+         (filesize
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-filesize item)
+            (and item (plist-get item :filesize))))
+         (duration
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-duration item)
+            (and item (plist-get item :duration))))
+         (text
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-description item)
+            (and item (plist-get item :description))))
+         (url
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-url item)
+            thing)))
+    (when (and (null text) (youtube-dl-item-p item))
       (setq text (youtube-dl-view--retrieve-description url))
-      (when item
-        (youtube-dl-item-description-set item text)))
+      (youtube-dl-item-description-set item text))
     (youtube-dl-view--show-description text url
                                        :title title
                                        :filesize filesize

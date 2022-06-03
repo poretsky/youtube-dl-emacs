@@ -333,14 +333,11 @@ display purposes anyway."
     (youtube-dl--redisplay)))
 
 (defun youtube-dl--request-url ()
-  "Interactively request URL from user. Being invoked in the listing
-buffer silently extract it from the item under point."
-  (or (and (eq (current-buffer) (youtube-dl--buffer))
-           (youtube-dl-item-url (youtube-dl--pointed-item)))
-      (read-from-minibuffer "URL: "
-                            (or (thing-at-point 'url)
-                                (when interprogram-paste-function
-                                  (funcall interprogram-paste-function))))))
+  "Interactively requests URL from user."
+  (read-from-minibuffer "URL: "
+                        (or (thing-at-point 'url)
+                            (when interprogram-paste-function
+                              (funcall interprogram-paste-function)))))
 
 (defun youtube-dl--request-immediate ()
   "Ask user about immediate download if necessary."
@@ -353,6 +350,15 @@ buffer silently extract it from the item under point."
   (list (youtube-dl--request-url)
         (youtube-dl--request-immediate)
         current-prefix-arg))
+
+(defun youtube-dl--thing ()
+  "Being invoked in the download listing buffer returns an item
+under point. Otherwise requests URL from user. Returns result
+as a list of one element suitable for use in `interactive' form."
+  (list
+   (or (and (eq (current-buffer) (youtube-dl--buffer))
+            (youtube-dl--pointed-item))
+       (youtube-dl--request-url))))
 
 (defun youtube-dl--playlist-list (url)
   "For each video, return one plist with :index, :id,
