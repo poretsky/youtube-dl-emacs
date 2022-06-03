@@ -613,48 +613,61 @@ is under point."
   (cl-incf (youtube-dl-item-priority (youtube-dl--pointed-item)) delta)
   (youtube-dl--run))
 
-(defun youtube-dl-list-toggle-pause (item)
-  "Toggle pause on item under point."
-  (interactive
-   (list (youtube-dl--pointed-item)))
-  (let ((paused-p (youtube-dl-item-paused-p item))
-        (current (youtube-dl--current)))
-    (setf (youtube-dl-item-paused-p item) (not paused-p))
-    (if (or (null current) (eq item current))
-        (youtube-dl--run)
-      (youtube-dl--redisplay))))
+(defun youtube-dl--pointed-thing ()
+  "Returns an item or a playlist title under point wrapped
+into a list suitable for use in `interactive' form."
+  (list
+   (or (get-text-property (point) 'youtube-dl-playlist-title)
+       (youtube-dl--pointed-item))))
 
-(defun youtube-dl-list-toggle-pause-all ()
-  "Toggle pause on all items. When paused items are in the minority,
-all other items are paused, and vice versa."
-  (interactive)
-  (let* ((count (length  youtube-dl-items))
-         (paused-count (cl-count-if #'youtube-dl-item-paused-p youtube-dl-items))
+(defun youtube-dl-list-toggle-pause (thing)
+  "Toggle pause on item under point or on the items of the playlist
+which header is under point."
+  (interactive (youtube-dl--pointed-thing))
+  (if (youtube-dl-item-p thing)
+      (let ((paused-p (youtube-dl-item-paused-p thing))
+            (current (youtube-dl--current)))
+        (setf (youtube-dl-item-paused-p thing) (not paused-p))
+        (if (or (null current) (eq thing current))
+            (youtube-dl--run)
+          (youtube-dl--redisplay)))
+    (youtube-dl-list-toggle-pause-all (youtube-dl--playlist-items thing))))
+
+(defun youtube-dl-list-toggle-pause-all (items)
+  "Toggle pause on items list. When paused items are in the minority,
+all other items are paused, and vice versa. Being called
+interactively operates on all items."
+  (interactive (list youtube-dl-items))
+  (let* ((count (length items))
+         (paused-count (cl-count-if #'youtube-dl-item-paused-p items))
          (target (< paused-count (- count paused-count))))
-    (dolist (item youtube-dl-items)
+    (dolist (item items)
       (unless (eq target (youtube-dl-item-paused-p item))
         (youtube-dl-list-toggle-pause item)))))
 
-(defun youtube-dl-list-toggle-slow (item)
-  "Toggle slow mode on item under point."
-  (interactive
-   (list (youtube-dl--pointed-item)))
-  (let ((slow-p (youtube-dl-item-slow-p item)))
-    (setf (youtube-dl-item-slow-p item) (not slow-p))
-    (if (not (eq item (youtube-dl--current)))
-        (youtube-dl--redisplay)
-      ;; Offset error count and restart the process.
-      (cl-decf (youtube-dl-item-failures item))
-      (kill-process youtube-dl-process))))
+(defun youtube-dl-list-toggle-slow (thing)
+  "Toggle slow mode on item under point or on the item of the playlist
+which header is under point."
+  (interactive (youtube-dl--pointed-thing))
+  (if (youtube-dl-item-p thing)
+      (let ((slow-p (youtube-dl-item-slow-p thing)))
+        (setf (youtube-dl-item-slow-p thing) (not slow-p))
+        (if (not (eq thing (youtube-dl--current)))
+            (youtube-dl--redisplay)
+          ;; Offset error count and restart the process.
+          (cl-decf (youtube-dl-item-failures thing))
+          (kill-process youtube-dl-process)))
+    (youtube-dl-list-toggle-slow-all (youtube-dl--playlist-items thing))))
 
-(defun youtube-dl-list-toggle-slow-all ()
-  "Toggle slow mode on all items. When slow items are in the minority,
-all other items are made slow, and vice versa."
-  (interactive)
-  (let* ((count (length  youtube-dl-items))
-         (slow-count (cl-count-if #'youtube-dl-item-slow-p youtube-dl-items))
+(defun youtube-dl-list-toggle-slow-all (items)
+  "Toggle slow mode on items list. When slow items are in the minority,
+all other items are made slow, and vice versa. Being called
+interactively operates on all items."
+  (interactive youtube-dl-items)
+  (let* ((count (length items))
+         (slow-count (cl-count-if #'youtube-dl-item-slow-p items))
          (target (< slow-count (- count slow-count))))
-    (dolist (item youtube-dl-items)
+    (dolist (item items)
       (unless (eq target (youtube-dl-item-slow-p item))
         (youtube-dl-list-toggle-slow item)))))
 
