@@ -31,7 +31,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(cl-eval-when '(load)
+(cl-eval-when (load)
   (require 'youtube-dl))
 
 (declare-function youtube-dl--request-url "youtube-dl")
