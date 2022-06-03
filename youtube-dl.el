@@ -557,23 +557,30 @@ then playlist will be reversed.
     (kill-new url)
     (message "Yanked %s" url)))
 
-(defun youtube-dl-list-kill (&optional delete)
-  "Remove the selected item from the queue. If optional argument
-is non-nil, delete associated files as well."
-  (interactive (list (yes-or-no-p "Delete associated files as well? ")))
-  (let ((item (youtube-dl--pointed-item)))
-    (youtube-dl--remove item)
-    (youtube-dl--run)
-    (when (and delete
-               (file-accessible-directory-p (youtube-dl-item-directory item)))
-      (let ((default-directory (youtube-dl-item-directory item))
-            (pattern (format "%s-%s.*"
-                             (if youtube-dl-restrict-filenames
-                                 "*"
-                               (youtube-dl-item-title item))
-                             (youtube-dl-item-id item))))
-        (dolist (file (file-expand-wildcards pattern))
-          (delete-file file))))))
+(defun youtube-dl--item-files (item)
+  "Returns list of existing files associated with the item."
+  (when (file-accessible-directory-p (youtube-dl-item-directory item))
+    (let ((default-directory (youtube-dl-item-directory item))
+          (pattern (format "*-%s.*" (youtube-dl-item-id item))))
+      (file-expand-wildcards pattern))))
+
+(defun youtube-dl-list-kill (item &optional files)
+  "Remove specified item from the queue. If a list of associated
+files is specified as optional second argument they will be deleted
+as well."
+  (interactive
+   (let* ((item (youtube-dl--pointed-item))
+          (files (youtube-dl--item-files item)))
+     (list item
+           (and files
+                (yes-or-no-p "Delete associated files as well? ")
+                files))))
+  (youtube-dl--remove item)
+  (youtube-dl--run)
+  (when files
+    (let ((default-directory (youtube-dl-item-directory item)))
+      (dolist (file files)
+        (delete-file file)))))
 
 (defun youtube-dl-list-priority-modify (delta)
   "Change priority of item under point by DELTA."
