@@ -557,30 +557,56 @@ then playlist will be reversed.
     (kill-new url)
     (message "Yanked %s" url)))
 
-(defun youtube-dl--item-files (item)
-  "Returns list of existing files associated with the item."
-  (when (file-accessible-directory-p (youtube-dl-item-directory item))
-    (let ((default-directory (youtube-dl-item-directory item))
-          (pattern (format "*-%s.*" (youtube-dl-item-id item))))
-      (file-expand-wildcards pattern))))
+(defun youtube-dl--file-lists (items)
+  "Returns list of existing files associated with the items listed
+in argument. Each element of the result list in turn is a list
+with directory path in car element and file names in the rest ones."
+  (cl-loop for item in items
+           for path = (youtube-dl-item-directory item)
+           for files = (when (file-accessible-directory-p path)
+                         (let ((default-directory path)
+                               (pattern (format "*-%s.*" (youtube-dl-item-id item))))
+                           (file-expand-wildcards pattern)))
+           when files
+           collect (cons path files)))
 
-(defun youtube-dl-list-kill (item &optional files)
-  "Remove specified item from the queue. If a list of associated
+(defun youtube-dl--playlist-items (playlist)
+  "Returns the list of playlist items."
+  (cl-loop for item in youtube-dl-items
+           when (equal (youtube-dl-item-playlist item) playlist)
+           collect item))
+
+(defun youtube-dl-list-kill (items &optional files)
+  "Remove listed items from the queue. If a list of associated
 files is specified as optional second argument they will be deleted
-as well."
+as well. Being invoked interactively in the download listing
+operates on an item under point or on a playlist which header
+is under point."
   (interactive
-   (let* ((item (youtube-dl--pointed-item))
-          (files (youtube-dl--item-files item)))
-     (list item
+   (let* ((playlist (get-text-property (point) 'youtube-dl-playlist-title))
+          (items
+           (if playlist
+               (and (yes-or-no-p "Kill entire playlist? ")
+                    (youtube-dl--playlist-items playlist))
+             (list (youtube-dl--pointed-item))))
+          (files (youtube-dl--file-lists items)))
+     (list items
            (and files
                 (yes-or-no-p "Delete associated files as well? ")
                 files))))
-  (youtube-dl--remove item)
-  (youtube-dl--run)
+  (dolist (item items)
+    (youtube-dl--remove item))
+  (when items
+    (youtube-dl--run))
   (when files
-    (let ((default-directory (youtube-dl-item-directory item)))
-      (dolist (file files)
-        (delete-file file)))))
+    (dolist (item-files files)
+      (let ((default-directory (car item-files)))
+        (dolist (file (cdr item-files))
+          (delete-file file)))
+      (unless (or (delete "." (delete ".." (directory-files (car item-files))))
+                  (file-equal-p (car item-files) youtube-dl-download-directory)
+                  (not (file-in-directory-p (car item-files) youtube-dl-download-directory)))
+        (delete-directory (car item-files))))))
 
 (defun youtube-dl-list-priority-modify (delta)
   "Change priority of item under point by DELTA."
