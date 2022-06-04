@@ -34,6 +34,7 @@
 (declare-function youtube-dl "youtube-dl" (url &rest args))
 (declare-function youtube-dl-list "youtube-dl" (&optional position))
 (declare-function youtube-dl--request-immediate "youtube-dl")
+(declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl-play "youtube-dl-play" (url))
 (declare-function w3m-view-this-url "w3m")
 
@@ -41,13 +42,6 @@
 (defgroup youtube-dl-w3m ()
   "W3m browser integration related options."
   :group 'youtube-dl)
-
-(defcustom youtube-dl-w3m-playable-urls
-  '("https?://youtu\\.be/[-_a-zA-Z0-9]\\{11\\}"
-    "https?://\\(?:www\\.\\)?youtube\\.com/watch\\?v\\(?:=\\|%3D\\)[-_a-zA-Z0-9]\\{11\\}")
-  "Patterns that match to directly playable URLs."
-  :group 'youtube-dl-w3m
-  :type '(repeat regexp))
 
 (defcustom youtube-dl-w3m-downloadable-urls
   '("https?://\\(?:www\\.\\)?youtube\\.com/.+"
@@ -79,19 +73,9 @@ started as paused."
                  (const :tag "No" nil)
                  (const :tag "Ask" t)))
 
-(defun youtube-dl-w3m--playable-p (url)
-  "Test given URL if it is directly playable."
-  (let ((patterns youtube-dl-w3m-playable-urls)
-        (matched nil))
-    (while (and patterns (not matched))
-      (if (string-match (car patterns) url)
-          (setq matched t)
-        (setq patterns (cdr patterns))))
-    matched))
-
 (defun youtube-dl-w3m--downloadable-p (url)
   "Test given URL if it is downloadable."
-  (or (youtube-dl-w3m--playable-p url)
+  (or (youtube-dl-playable-p url)
       (let ((patterns youtube-dl-w3m-downloadable-urls)
             (matched nil))
         (while (and patterns (not matched))
@@ -183,7 +167,7 @@ Uses `w3m-view-this-url' as a fallback."
   (let ((url (youtube-dl-w3m--current-anchor)))
     (cond
      ((and youtube-dl-w3m-auto-play
-           (youtube-dl-w3m--playable-p url)
+           (youtube-dl-playable-p url)
            (or (eq youtube-dl-w3m-auto-play 'always)
                (y-or-n-p "Start playback? ")))
       (youtube-dl-play url))

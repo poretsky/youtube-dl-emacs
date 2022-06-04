@@ -90,6 +90,13 @@ for downloaded files."
   :group 'youtube-dl
   :type 'string)
 
+(defcustom youtube-dl-playable-urls
+  '("https?://youtu\\.be/[-_a-zA-Z0-9]\\{11\\}"
+    "https?://\\(?:www\\.\\)?youtube\\.com/watch\\?v\\(?:=\\|%3D\\)[-_a-zA-Z0-9]\\{11\\}")
+  "Patterns that match to directly playable URLs."
+  :group 'youtube-dl-w3m
+  :type '(repeat regexp))
+
 (defconst youtube-dl-audio-quality
   '(radio :tag "Quality level"
           (const :tag "default" nil)
@@ -193,6 +200,16 @@ Any other value means to ask for each queueing item."
 (defun youtube-dl-item-description-set (item text)
   "Set description text for specified item."
   (setf (youtube-dl-item-description item) text))
+
+(defun youtube-dl-playable-p (url)
+  "Test given URL if it is directly playable."
+  (let ((patterns youtube-dl-playable-urls)
+        (matched nil))
+    (while (and patterns (not matched))
+      (if (string-match (car patterns) url)
+          (setq matched t)
+        (setq patterns (cdr patterns))))
+    matched))
 
 (defvar youtube-dl-items ()
   "List of all items still to be downloaded.")
