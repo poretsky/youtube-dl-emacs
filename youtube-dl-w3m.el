@@ -36,6 +36,7 @@
 (declare-function youtube-dl--request-immediate "youtube-dl")
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl-play "youtube-dl-play" (url))
+(declare-function youtube-dl-view "youtube-dl-view" (url))
 (declare-function w3m-view-this-url "w3m")
 
 ;;;###autoload
@@ -50,15 +51,17 @@
   :group 'youtube-dl-w3m
   :type '(repeat regexp))
 
-(defcustom youtube-dl-w3m-auto-play t
+(defcustom youtube-dl-w3m-auto-play 'preview
   "Wether to start playback from a link when visiting if it is
 distinguished as directly playable. If nil, it is disabled.
 `always' means to start playback on visiting links whenever it seems
-reasonable without asking. Any other value means to ask for each
+reasonable without asking. `preview' means to retrieve and show
+a description page. Any other value means to ask for each
 link that is detected as directly playable."
   :group 'youtube-dl-w3m
   :type '(choice (const :tag "Yes" always)
                  (const :tag "No" nil)
+                 (const :tag "Preview" preview)
                  (const :tag "Ask" t)))
 
 (defcustom youtube-dl-w3m-auto-download t
@@ -170,8 +173,11 @@ Uses `w3m-view-this-url' as a fallback."
            (not current-prefix-arg)
            (youtube-dl-playable-p url)
            (or (eq youtube-dl-w3m-auto-play 'always)
+               (eq youtube-dl-w3m-auto-play 'preview)
                (y-or-n-p "Start playback? ")))
-      (youtube-dl-play url))
+      (if (eq youtube-dl-w3m-auto-play 'preview)
+          (youtube-dl-view url)
+        (youtube-dl-play url)))
      ((and youtube-dl-w3m-auto-download
            (not current-prefix-arg)
            (youtube-dl-w3m--downloadable-p url)
