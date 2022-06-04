@@ -117,11 +117,9 @@ audio content is downloaded.
 On completion download list is shown with point positioned
 at the newly added items."
   (interactive (youtube-dl-w3m--request-args))
-  (cl-declare (special youtube-dl-items))
-  (let ((position (length youtube-dl-items)))
-    (youtube-dl url immediate reverse
-                :extract-audio audio-only)
-    (youtube-dl-list position)))
+  (youtube-dl url immediate reverse
+              :extract-audio audio-only
+              :display t))
 
 (defun youtube-dl-w3m-audio (url &optional immediate reverse)
   "Schedules an URL for youtube-dl download audio content. Being called

@@ -37,7 +37,6 @@
   (require 'youtube-dl))
 
 (declare-function youtube-dl "youtube-dl" (url &rest args))
-(declare-function youtube-dl-list "youtube-dl" (&optional position))
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl--thing "youtube-dl")
 (declare-function youtube-dl--request-immediate "youtube-dl")
@@ -88,12 +87,11 @@
 
 (define-button-type 'youtube-dl-view-download 'action
   (lambda (button)
-    (cl-declare (special youtube-dl-items youtube-dl-current-url))
-    (let ((position (length youtube-dl-items)))
-      (youtube-dl youtube-dl-current-url
-                  (youtube-dl--request-immediate) nil
-                  :extract-audio (button-get button 'audio-only))
-      (youtube-dl-list position)))
+    (cl-declare (special youtube-dl-current-url))
+    (youtube-dl youtube-dl-current-url
+                (youtube-dl--request-immediate) nil
+                :extract-audio (button-get button 'audio-only)
+                :display t))
   :supertype 'button)
 
 (define-button-type 'youtube-dl-view-link 'action

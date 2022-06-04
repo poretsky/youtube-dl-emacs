@@ -429,7 +429,7 @@ as a list of one element suitable for use in `interactive' form."
 (cl-defun youtube-dl-submit
     (videos
      &optional immediate reverse
-     &key extract-audio directory (first 1) (priority 0) slow)
+     &key extract-audio directory (first 1) (priority 0) slow display)
   "Submit listed videos to the download queue. If second argument
 is nil, the items start as paused. If third argument is non-nil
 the items are queued in reverse order.
@@ -442,11 +442,14 @@ the items are queued in reverse order.
 
 :priority PRIORITY -- Use this priority for all download entries.
 
-:slow BOOL -- Start all download entries in slow mode."
+:slow BOOL -- Start all download entries in slow mode.
+
+:display BOOL -- Pop up the listing positioned at the newly added content."
   (let* ((max (cl-loop for entry in videos
                        maximize (or (plist-get entry :index) 0)))
          (width (1+ (floor (log max 10))))
-         (prefix-format (format "%%0%dd-" width)))
+         (prefix-format (format "%%0%dd-" width))
+         (position (length youtube-dl-items)))
     (when reverse
       (setf videos (youtube-dl--playlist-reverse videos)))
     (dolist (video (youtube-dl--playlist-cutoff videos first))
@@ -481,13 +484,15 @@ the items are queued in reverse order.
         (when (and (youtube-dl-item-id item)
                    (youtube-dl-item-url item))
           (setf youtube-dl-items (nconc youtube-dl-items (list item)))
-          (youtube-dl--run))))))
+          (youtube-dl--run))))
+    (when display
+      (youtube-dl-list position))))
 
 ;;;###autoload
 (cl-defun youtube-dl
     (url
      &optional immediate reverse
-     &key extract-audio directory (first 1) (priority 0) slow)
+     &key extract-audio directory (first 1) (priority 0) slow display)
   "Submit video pointed by URL to the download queue. If URL points
 to a playlist, all its items are added with index prefixes.
 If second argument is nil, the items start as paused.
@@ -502,7 +507,9 @@ then playlist will be reversed.
 
 :priority PRIORITY -- Use this priority for all download entries.
 
-:slow BOOL -- Start all download entries in slow mode."
+:slow BOOL -- Start all download entries in slow mode.
+
+:display BOOL -- Pop up the listing positioned at the newly added content."
   (interactive (youtube-dl--request-args))
   (youtube-dl-submit (youtube-dl-playlist-list url)
                      immediate reverse
@@ -510,13 +517,14 @@ then playlist will be reversed.
                      :directory directory
                      :first first
                      :priority priority
-                     :slow slow))
+                     :slow slow
+                     :display display))
 
 ;;;###autoload
 (cl-defun youtube-dl-audio
     (url
      &optional immediate reverse
-     &key directory (first 1) (priority 0) slow)
+     &key directory (first 1) (priority 0) slow display)
   "Submit video pointed by URL to the download queue. If URL points
 to a playlist, all its items are added with index prefixes.
 Only audio content will be retrieved.
@@ -530,14 +538,17 @@ then playlist will be reversed.
 
 :priority PRIORITY -- Use this priority for all download entries.
 
-:slow BOOL -- Start all download entries in slow mode."
+:slow BOOL -- Start all download entries in slow mode.
+
+:display BOOL -- Pop up the listing positioned at the newly added content."
   (interactive (youtube-dl--request-args))
   (youtube-dl url immediate reverse
               :extract-audio t
               :directory directory
               :first first
               :priority priority
-              :slow slow))
+              :slow slow
+              :display display))
 
 ;; List user interface:
 
