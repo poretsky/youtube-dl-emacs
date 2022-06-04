@@ -36,7 +36,11 @@
 (cl-eval-when (load)
   (require 'youtube-dl))
 
+(declare-function youtube-dl "youtube-dl" (url &rest args))
+(declare-function youtube-dl-list "youtube-dl" (&optional position))
+(declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl--thing "youtube-dl")
+(declare-function youtube-dl--request-immediate "youtube-dl")
 (declare-function youtube-dl--playlist-list "youtube-dl" (url))
 (declare-function youtube-dl-item-p "youtube-dl" (item))
 (declare-function youtube-dl-item-url "youtube-dl" (item))
@@ -76,6 +80,22 @@
                       (button-end button))))
   :supertype 'button)
 
+(define-button-type 'youtube-dl-view-play 'action
+  (lambda (_button)
+    (cl-declare (special youtube-dl-current-url))
+    (youtube-dl-play youtube-dl-current-url))
+  :supertype 'button)
+
+(define-button-type 'youtube-dl-view-download 'action
+  (lambda (button)
+    (cl-declare (special youtube-dl-items youtube-dl-current-url))
+    (let ((position (length youtube-dl-items)))
+      (youtube-dl youtube-dl-current-url
+                  (youtube-dl--request-immediate) nil
+                  :extract-audio (button-get button 'audio-only))
+      (youtube-dl-list position)))
+  :supertype 'button)
+
 (define-button-type 'youtube-dl-view-link 'action
   (lambda (_button)
     (browse-url-at-point))
@@ -110,14 +130,17 @@
       "")))
 
 (cl-defun youtube-dl-view--show-description
-    (text url &key title filesize duration)
+    (text url submitted-p &key title filesize duration)
   "Show a description represented by given text.
-Second argument specifies source URL for reference."
+The second argument specifies source URL for reference.
+The third argument indicates whether this URL is already submitted
+for download."
   (cl-declare (special youtube-dl-current-url))
   (with-current-buffer (get-buffer-create " *youtube-dl view*")
     (youtube-dl-view-mode)
     (let ((window (get-buffer-window))
-          (inhibit-read-only t))
+          (inhibit-read-only t)
+          (playable-p (youtube-dl-playable-p url)))
       (erase-buffer)
       (when title
         (setq header-line-format
@@ -135,6 +158,20 @@ Second argument specifies source URL for reference."
                 "\n"))
       (when (> (point) (point-min))
         (insert "\n"))
+      (when playable-p
+        (insert-button "Play"
+                       :type 'youtube-dl-view-play))
+      (unless submitted-p
+        (unless (bolp)
+          (insert "  "))
+        (insert-button "Download"
+                       :type 'youtube-dl-view-download)
+        (when playable-p
+          (insert "  ")
+          (insert-button "Download audio" 'audio-only t
+                         :type 'youtube-dl-view-download)))
+      (unless (bolp)
+        (insert "\n\n"))
       (insert text)
       (goto-char (point-min))
       (while
@@ -194,6 +231,7 @@ in the download listing, for an item under point."
       (setq text (youtube-dl-view--retrieve-description url))
       (youtube-dl-item-description-set item text))
     (youtube-dl-view--show-description text url
+                                       (youtube-dl-item-p item)
                                        :title title
                                        :filesize filesize
                                        :duration duration)))

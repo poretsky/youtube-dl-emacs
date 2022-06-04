@@ -33,7 +33,7 @@ downloads. From this list, items under point can be canceled
 (<kbd>SPC</kbd>), and have its priority adjusted
 (<kbd>[</kbd> and <kbd>]</kbd>). Among this, an item description can
 be loaded and shown in a separate buffer (<kbd>RET</kbd>). Highlighted
-references in this buffer can be navigated with <kbd>tab</kbd> and
+buttons in this buffer can be navigated with <kbd>tab</kbd> and
 <kbd>backtab</kbd> and activated with <kbd>RET</kbd>.
 
 Integration with w3m web browser is also provided. Two additional
