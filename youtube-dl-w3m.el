@@ -34,7 +34,7 @@
 (declare-function youtube-dl "youtube-dl" (url &rest args))
 (declare-function youtube-dl-list "youtube-dl" (&optional position))
 (declare-function youtube-dl--request-immediate "youtube-dl")
-(declare-function youtube-dl-play "youtube-dl" (url))
+(declare-function youtube-dl-play "youtube-dl-play" (url))
 (declare-function w3m-view-this-url "w3m")
 
 ;;;###autoload
