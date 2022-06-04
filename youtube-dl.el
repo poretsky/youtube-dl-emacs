@@ -392,14 +392,23 @@ as a list of one element suitable for use in `interactive' form."
                for video = (ignore-errors (json-read))
                while video
                collect (list :index       index
-                             :id          (plist-get video :id)
-                             :url         (or (plist-get video :webpage_url)
-                                              (plist-get video :original_url))
-                             :playlist    (plist-get video :playlist)
-                             :description (plist-get video :description)
-                             :filesize    (plist-get video :filesize)
-                             :duration    (plist-get video :duration)
-                             :title       (plist-get video :title))))))
+                             :id           (plist-get video :id)
+                             :url          (or (plist-get video :webpage_url)
+                                               (plist-get video :original_url))
+                             :playlist     (plist-get video :playlist)
+                             :playlist-url (and (plist-get video :playlist) url)
+                             :description  (plist-get video :description)
+                             :filesize     (plist-get video :filesize)
+                             :duration     (plist-get video :duration)
+                             :title        (plist-get video :title))))))
+
+(defun youtube-dl-playlist-list (url)
+  "Fetch playlist info from the URL. Return result as a list of plists."
+  (message "Fetching playlist ...")
+  (let ((result (youtube-dl--playlist-list url)))
+    (unless result
+      (error "Failed to fetch playlist (%s)." url))
+    result))
 
 (defun youtube-dl--playlist-reverse (list)
   "Return a copy of LIST with the indexes reversed."
@@ -416,6 +425,63 @@ as a list of one element suitable for use in `interactive' form."
         (filter (lambda (v) (< (plist-get v :index) n)))
         (copy (copy-sequence list)))
     (cl-delete-if filter (cl-stable-sort copy #'< :key key))))
+
+(cl-defun youtube-dl-submit
+    (videos
+     &optional immediate reverse
+     &key extract-audio directory (first 1) (priority 0) slow)
+  "Submit listed videos to the download queue. If second argument
+is nil, the items start as paused. If third argument is non-nil
+the items are queued in reverse order.
+
+:extract-audio BOOL -- Extract audio content.
+
+:directory PATH -- Destination directory for all videos.
+
+:first INDEX -- Start downloading from a given one-based index.
+
+:priority PRIORITY -- Use this priority for all download entries.
+
+:slow BOOL -- Start all download entries in slow mode."
+  (let* ((max (cl-loop for entry in videos
+                       maximize (or (plist-get entry :index) 0)))
+         (width (1+ (floor (log max 10))))
+         (prefix-format (format "%%0%dd-" width)))
+    (when reverse
+      (setf videos (youtube-dl--playlist-reverse videos)))
+    (dolist (video (youtube-dl--playlist-cutoff videos first))
+      (let* ((index (plist-get video :index))
+             (playlist (plist-get video :playlist))
+             (prefix (if (and playlist index)
+                         (format prefix-format index)
+                       ""))
+             (title (format "%s%s" prefix (plist-get video :title)))
+             (dest (format "%s%s" prefix "%(title)s-%(id)s.%(ext)s"))
+             (full-dir (expand-file-name
+                        (or directory
+                            (and (not youtube-dl-restrict-filenames) playlist)
+                            "")
+                        youtube-dl-download-directory))
+             (item (youtube-dl-item--create
+                    :id (plist-get video :id)
+                    :url (plist-get video :url)
+                    :description (plist-get video :description)
+                    :filesize (plist-get video :filesize)
+                    :duration (plist-get video :duration)
+                    :title title
+                    :playlist playlist
+                    :playlist-url (plist-get video :playlist-url)
+                    :audio-p extract-audio
+                    :failures 0
+                    :priority priority
+                    :paused-p (not immediate)
+                    :slow-p slow
+                    :directory full-dir
+                    :destination dest)))
+        (when (and (youtube-dl-item-id item)
+                   (youtube-dl-item-url item))
+          (setf youtube-dl-items (nconc youtube-dl-items (list item)))
+          (youtube-dl--run))))))
 
 ;;;###autoload
 (cl-defun youtube-dl
@@ -438,49 +504,13 @@ then playlist will be reversed.
 
 :slow BOOL -- Start all download entries in slow mode."
   (interactive (youtube-dl--request-args))
-  (message "Fetching playlist ...")
-  (let ((videos (youtube-dl--playlist-list url)))
-    (if (null videos)
-        (error "Failed to fetch playlist (%s)." url)
-      (let* ((max (cl-loop for entry in videos
-                           maximize (or (plist-get entry :index) 0)))
-             (width (1+ (floor (log max 10))))
-             (prefix-format (format "%%0%dd-" width)))
-        (when reverse
-          (setf videos (youtube-dl--playlist-reverse videos)))
-        (dolist (video (youtube-dl--playlist-cutoff videos first))
-          (let* ((index (plist-get video :index))
-                 (playlist (plist-get video :playlist))
-                 (prefix (if (and playlist index)
-                             (format prefix-format index)
-                           ""))
-                 (title (format "%s%s" prefix (plist-get video :title)))
-                 (dest (format "%s%s" prefix "%(title)s-%(id)s.%(ext)s"))
-                 (full-dir (expand-file-name
-                            (or directory
-                                (and (not youtube-dl-restrict-filenames) playlist)
-                                "")
-                            youtube-dl-download-directory))
-                 (item (youtube-dl-item--create
-                        :id (plist-get video :id)
-                        :url (plist-get video :url)
-                        :description (plist-get video :description)
-                        :filesize (plist-get video :filesize)
-                        :duration (plist-get video :duration)
-                        :title title
-                        :playlist playlist
-                        :playlist-url (and playlist url)
-                        :audio-p extract-audio
-                        :failures 0
-                        :priority priority
-                        :paused-p (not immediate)
-                        :slow-p slow
-                        :directory full-dir
-                        :destination dest)))
-            (when (and (youtube-dl-item-id item)
-                       (youtube-dl-item-url item))
-              (setf youtube-dl-items (nconc youtube-dl-items (list item)))
-              (youtube-dl--run))))))))
+  (youtube-dl-submit (youtube-dl-playlist-list url)
+                     immediate reverse
+                     :extract-audio extract-audio
+                     :directory directory
+                     :first first
+                     :priority priority
+                     :slow slow))
 
 ;;;###autoload
 (cl-defun youtube-dl-audio

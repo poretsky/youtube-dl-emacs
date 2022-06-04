@@ -41,7 +41,7 @@
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl--thing "youtube-dl")
 (declare-function youtube-dl--request-immediate "youtube-dl")
-(declare-function youtube-dl--playlist-list "youtube-dl" (url))
+(declare-function youtube-dl-playlist-list "youtube-dl" (url))
 (declare-function youtube-dl-item-p "youtube-dl" (item))
 (declare-function youtube-dl-item-url "youtube-dl" (item))
 (declare-function youtube-dl-item-title "youtube-dl" (item))
@@ -204,7 +204,7 @@ in the download listing, for an item under point."
   (interactive (youtube-dl--thing))
   (let* ((item
           (if (stringp thing)
-              (let ((items (youtube-dl--playlist-list thing)))
+              (let ((items (youtube-dl-playlist-list thing)))
                 (and (listp items) (car items)))
             thing))
          (title
