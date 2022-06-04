@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'button)
 (cl-eval-when (load)
   (require 'youtube-dl))
 
@@ -51,21 +52,6 @@
   "YouTube video descriptions view settings."
   :group 'youtube-dl)
 
-(defface youtube-dl-view-play-start-time
-  '((t :inherit font-lock-builtin-face))
-  "Face for highlighting play start time references."
-  :group 'youtube-dl-view)
-
-(defface youtube-dl-view-link
-  '((t :inherit font-lock-function-name-face))
-  "Face for highlighting external links."
-  :group 'youtube-dl-view)
-
-(defface youtube-dl-view-mail
-  '((t :inherit font-lock-variable-name-face))
-  "Face for highlighting e-mail addresses."
-  :group 'youtube-dl-view)
-
 (defface youtube-dl-view-title
   '((t :inherit font-lock-comment-face))
   "Face for highlighting item title."
@@ -81,12 +67,30 @@
   "Face for highlighting header values."
   :group 'youtube-dl-view)
 
+(define-button-type 'youtube-dl-view-play-start-time 'action
+  (lambda (button)
+    (cl-declare (special youtube-dl-current-url))
+    (youtube-dl-play youtube-dl-current-url
+                     (buffer-substring-no-properties
+                      (button-start button)
+                      (button-end button))))
+  :supertype 'button)
+
+(define-button-type 'youtube-dl-view-link 'action
+  (lambda (_button)
+    (browse-url-at-point))
+  :supertype 'button)
+
+(define-button-type 'youtube-dl-view-mail 'action
+  (lambda (_button)
+    (compose-mail (thing-at-point 'email)))
+  :supertype 'button)
+
 (defvar youtube-dl-view-mode-map
   (let ((map (make-sparse-keymap)))
     (prog1 map
-      (define-key map "\t" #'youtube-dl-view-next-reference)
-      (define-key map [backtab] #'youtube-dl-view-prev-reference)
-      (define-key map "\r" #'youtube-dl-view-action)))
+      (set-keymap-parent map button-buffer-map)
+      (define-key map "q" #'quit-window)))
   "Keymap for `youtube-dl-view-mode'")
 
 (define-derived-mode youtube-dl-view-mode special-mode "youtube-dl-view"
@@ -141,15 +145,15 @@ Second argument specifies source URL for reference."
          ((match-string 1)
           (let ((link (bounds-of-thing-at-point 'email)))
             (when link
-              (put-text-property (car link) (cdr link)
-                                 'face 'youtube-dl-view-mail))))
+              (make-button (car link) (cdr link)
+                           :type 'youtube-dl-view-mail))))
          ((match-string 2)
           (let ((link (bounds-of-thing-at-point 'url)))
             (when link
-              (put-text-property (car link) (cdr link)
-                                 'face 'youtube-dl-view-link))))
-         (t (put-text-property (match-beginning 0) (match-end 0)
-                               'face 'youtube-dl-view-play-start-time))))
+              (make-button (car link) (cdr link)
+                           :type 'youtube-dl-view-link))))
+         (t (make-button (match-beginning 0) (match-end 0)
+                         :type 'youtube-dl-view-play-start-time))))
       (set (make-local-variable 'youtube-dl-current-url) url)
       (setf (point) (point-min))
       (when window
@@ -193,67 +197,6 @@ in the download listing, for an item under point."
                                        :title title
                                        :filesize filesize
                                        :duration duration)))
-
-(defun youtube-dl-view-action ()
-  "Performs an action associated with the reference under point."
-  (interactive)
-  (cl-declare (special youtube-dl-current-url))
-  (unless (eq major-mode 'youtube-dl-view-mode)
-    (error "Not in youtube-dl view buffer."))
-  (cond
-   ((eq (get-text-property (point) 'face) 'youtube-dl-view-play-start-time)
-    (youtube-dl-play youtube-dl-current-url
-                     (buffer-substring-no-properties
-                      (line-beginning-position)
-                      (or (next-single-property-change (point) 'face) (point-max)))))
-   ((eq (get-text-property (point) 'face) 'youtube-dl-view-link)
-    (browse-url-at-point))
-   ((eq (get-text-property (point) 'face) 'youtube-dl-view-mail)
-    (compose-mail (thing-at-point 'email)))
-   (t (error "No reference at this point."))))
-
-(defun youtube-dl-view-next-reference ()
-  "Move to the next reference if any."
-  (interactive)
-  (unless (eq major-mode 'youtube-dl-view-mode)
-    (error "Not in youtube-dl view buffer."))
-  (let ((start (point))
-        (pos (next-single-property-change (point) 'face)))
-    (while pos
-      (if (or (eq 'youtube-dl-view-play-start-time (get-text-property pos 'face))
-              (eq 'youtube-dl-view-link (get-text-property pos 'face))
-              (eq 'youtube-dl-view-mail (get-text-property pos 'face)))
-          (progn
-            (goto-char pos)
-            (setq pos nil))
-        (setq pos (next-single-property-change pos 'face))))
-    (when (equal (point) start)
-      (error "No more references."))))
-
-(defun youtube-dl-view-prev-reference ()
-  "Move to the previous reference if any."
-  (interactive)
-  (unless (eq major-mode 'youtube-dl-view-mode)
-    (error "Not in youtube-dl view buffer."))
-  (let ((start (point))
-        (pos (previous-single-property-change (point) 'face)))
-    (while pos
-      (cond
-       ((eq 'youtube-dl-view-play-start-time (get-text-property pos 'face))
-        (goto-char pos)
-        (beginning-of-line)
-        (setq pos nil))
-       ((eq 'youtube-dl-view-link (get-text-property pos 'face))
-        (goto-char pos)
-        (goto-char (car (bounds-of-thing-at-point 'url)))
-        (setq pos nil))
-       ((eq 'youtube-dl-view-mail (get-text-property pos 'face))
-        (goto-char pos)
-        (goto-char (car (bounds-of-thing-at-point 'email)))
-        (setq pos nil))
-       (t (setq pos (previous-single-property-change pos 'face)))))
-    (when (equal (point) start)
-      (error "No more references."))))
 
 (provide 'youtube-dl-view)
 
