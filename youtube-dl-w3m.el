@@ -167,16 +167,18 @@ Uses `w3m-view-this-url' as a fallback."
   (let ((url (youtube-dl-w3m--current-anchor)))
     (cond
      ((and youtube-dl-w3m-auto-play
+           (not current-prefix-arg)
            (youtube-dl-playable-p url)
            (or (eq youtube-dl-w3m-auto-play 'always)
                (y-or-n-p "Start playback? ")))
       (youtube-dl-play url))
      ((and youtube-dl-w3m-auto-download
+           (not current-prefix-arg)
            (youtube-dl-w3m--downloadable-p url)
            (or (eq youtube-dl-w3m-auto-download 'always)
                (y-or-n-p "Schedule download? ")))
       (youtube-dl-w3m url))
-     (t (w3m-view-this-url)))))
+     (t (call-interactively 'w3m-view-this-url)))))
 
 (provide 'youtube-dl-w3m)
 
