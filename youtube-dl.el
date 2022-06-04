@@ -761,6 +761,7 @@ in the playlist. Any other non-nil value implies positioning on the
 active item or at the beginning of buffer if no active item exists."
   (with-current-buffer (youtube-dl--buffer)
     (let* ((inhibit-read-only t)
+           (window (get-buffer-window (current-buffer)))
            (index 0)
            (target-point nil)
            (current-playlist nil)
@@ -840,7 +841,9 @@ active item or at the beginning of buffer if no active item exists."
       (if target-point
           (goto-char target-point)
         (when position
-          (goto-char (+ (point-min) youtube-dl-list-title-start-position)))))))
+          (goto-char (+ (point-min) youtube-dl-list-title-start-position))))
+      (when window
+        (set-window-point window (point))))))
 
 ;;;###autoload
 (defun youtube-dl-list (&optional position)
