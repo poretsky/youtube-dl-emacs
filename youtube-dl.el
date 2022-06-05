@@ -737,6 +737,12 @@ interactively operates on all items."
   (interactive)
   (youtube-dl-list-priority-modify -1))
 
+(defun youtube-dl-quit ()
+  "Clear downloads queue and quit."
+  (interactive)
+  (youtube-dl-list-kill youtube-dl-items)
+  (quit-window))
+
 (defvar youtube-dl-list-mode-map
   (let ((map (make-sparse-keymap)))
     (prog1 map
@@ -746,6 +752,7 @@ interactively operates on all items."
       (define-key map "y" #'youtube-dl-list-yank)
       (define-key map " " #'youtube-dl-play)
       (define-key map "\r" #'youtube-dl-view)
+      (define-key map "Q" #'youtube-dl-quit)
       (define-key map [down] #'youtube-dl-list-next-item)
       (define-key map [up] #'youtube-dl-list-prev-item)
       (define-key map "d" #'youtube-dl-list-kill)
