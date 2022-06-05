@@ -64,6 +64,22 @@
   :group 'youtube-dl
   :type 'directory)
 
+(defcustom youtube-dl-video-folder "video"
+  "Folder name for download YouTube videos. it will be created
+by need as a subfolder of the download directory specified
+by the option `youtube-dl-download-directory'. Actually here go
+the downloads from URLs satisfying criteria listed in the option
+ `youtube-dl-playable-urls' unless audio extraction is requested."
+  :group 'youtube-dl
+  :type 'string)
+
+(defcustom youtube-dl-audio-folder "audio"
+  "Folder name for download audio extractions. it will be created
+by need as a subfolder of the download directory specified
+by the option `youtube-dl-download-directory'."
+  :group 'youtube-dl
+  :type 'string)
+
 (defcustom youtube-dl-program "youtube-dl"
   "The name of the program invoked for downloading YouTube videos."
   :group 'youtube-dl
@@ -461,14 +477,22 @@ as a list of one element suitable for use in `interactive' form."
                        ""))
              (title (format "%s%s" prefix (plist-get video :title)))
              (dest (format "%s%s" prefix "%(title)s-%(id)s.%(ext)s"))
+             (url (plist-get video :url))
              (full-dir (expand-file-name
                         (or directory
                             (and (not youtube-dl-restrict-filenames) playlist)
                             "")
-                        youtube-dl-download-directory))
+                        (cond
+                         (extract-audio
+                          (expand-file-name (or youtube-dl-audio-folder "")
+                                            youtube-dl-download-directory))
+                         ((youtube-dl-playable-p url)
+                          (expand-file-name (or youtube-dl-video-folder "")
+                                            youtube-dl-download-directory))
+                         (t youtube-dl-download-directory))))
              (item (youtube-dl-item--create
                     :id (plist-get video :id)
-                    :url (plist-get video :url)
+                    :url url
                     :description (plist-get video :description)
                     :filesize (plist-get video :filesize)
                     :duration (plist-get video :duration)
