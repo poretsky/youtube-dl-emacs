@@ -39,8 +39,8 @@
 (declare-function youtube-dl "youtube-dl" (url &rest args))
 (declare-function youtube-dl-submit "youtube-dl" (videos &rest args))
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
-(declare-function youtube-dl--thing "youtube-dl")
-(declare-function youtube-dl--request-immediate "youtube-dl")
+(declare-function youtube-dl-thing "youtube-dl")
+(declare-function youtube-dl-request-immediate "youtube-dl")
 (declare-function youtube-dl-playlist-list "youtube-dl" (url))
 (declare-function youtube-dl-item-p "youtube-dl" (item))
 (declare-function youtube-dl-item-url "youtube-dl" (item))
@@ -73,8 +73,8 @@
 
 (define-button-type 'youtube-dl-view-play-start-time 'action
   (lambda (button)
-    (cl-declare (special youtube-dl-current-url))
-    (youtube-dl-play youtube-dl-current-url
+    (cl-declare (special youtube-dl-view-current-url))
+    (youtube-dl-play youtube-dl-view-current-url
                      (buffer-substring-no-properties
                       (button-start button)
                       (button-end button))))
@@ -82,15 +82,15 @@
 
 (define-button-type 'youtube-dl-view-play 'action
   (lambda (_button)
-    (cl-declare (special youtube-dl-current-url))
-    (youtube-dl-play youtube-dl-current-url))
+    (cl-declare (special youtube-dl-view-current-url))
+    (youtube-dl-play youtube-dl-view-current-url))
   :supertype 'button)
 
 (define-button-type 'youtube-dl-view-download 'action
   (lambda (button)
-    (cl-declare (special youtube-dl-current-url))
-    (youtube-dl youtube-dl-current-url
-                (youtube-dl--request-immediate) nil
+    (cl-declare (special youtube-dl-view-current-url))
+    (youtube-dl youtube-dl-view-current-url
+                (youtube-dl-request-immediate) nil
                 :extract-audio (button-get button 'audio-only)
                 :display t))
   :supertype 'button)
@@ -134,7 +134,7 @@
 The second argument specifies source URL for reference.
 The third argument indicates whether this URL is already submitted
 for download."
-  (cl-declare (special youtube-dl-current-url))
+  (cl-declare (special youtube-dl-view-current-url))
   (with-current-buffer (get-buffer-create " *youtube-dl view*")
     (youtube-dl-view-mode)
     (let ((window (get-buffer-window))
@@ -190,7 +190,7 @@ for download."
                            :type 'youtube-dl-view-link))))
          (t (make-button (match-beginning 0) (match-end 0)
                          :type 'youtube-dl-view-play-start-time))))
-      (set (make-local-variable 'youtube-dl-current-url) url)
+      (set (make-local-variable 'youtube-dl-view-current-url) url)
       (setf (point) (point-min))
       (when window
         (set-window-point window (point-min)))
@@ -202,7 +202,7 @@ for download."
 in the download listing, for an item under point. If specified URL
 points to a playlist and it has more than one item, this playlist
 is submitted for download as paused and shown in the listing."
-  (interactive (youtube-dl--thing))
+  (interactive (youtube-dl-thing))
   (let* ((playlist (and (stringp thing) (youtube-dl-playlist-list thing)))
          (item
           (if playlist

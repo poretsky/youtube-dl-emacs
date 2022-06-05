@@ -33,7 +33,7 @@
 
 (declare-function youtube-dl "youtube-dl" (url &rest args))
 (declare-function youtube-dl-list "youtube-dl" (&optional position))
-(declare-function youtube-dl--request-immediate "youtube-dl")
+(declare-function youtube-dl-request-immediate "youtube-dl")
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl-play "youtube-dl-play" (url))
 (declare-function youtube-dl-view "youtube-dl-view" (url))
@@ -102,7 +102,7 @@ started as paused."
 (defun youtube-dl-w3m--request-args ()
   "Interactively request download arguments from user."
   (list (youtube-dl-w3m--guess-url)
-        (youtube-dl--request-immediate)
+        (youtube-dl-request-immediate)
         current-prefix-arg))
 
 (defun youtube-dl-w3m (url &optional immediate reverse audio-only)

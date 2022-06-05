@@ -34,7 +34,7 @@
 (cl-eval-when (load)
   (require 'youtube-dl))
 
-(declare-function youtube-dl--thing "youtube-dl")
+(declare-function youtube-dl-thing "youtube-dl")
 (declare-function youtube-dl-item-p "youtube-dl" (item))
 (declare-function youtube-dl-item-url "youtube-dl" (item))
 
@@ -73,7 +73,7 @@
   "Plays video from specified URL or, being invoked interactively
 in the download list, from an item under point. Optional second
 argument, if non-nil, is treated as start time specification string."
-  (interactive (youtube-dl--thing))
+  (interactive (youtube-dl-thing))
   (let* ((url
           (if (youtube-dl-item-p thing)
               (youtube-dl-item-url thing)

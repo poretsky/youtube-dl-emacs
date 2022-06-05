@@ -356,7 +356,7 @@ display purposes anyway."
                             (when interprogram-paste-function
                               (funcall interprogram-paste-function)))))
 
-(defun youtube-dl--request-immediate ()
+(defun youtube-dl-request-immediate ()
   "Ask user about immediate download if necessary."
   (or (eq youtube-dl-immediate 'always)
       (and youtube-dl-immediate
@@ -365,10 +365,10 @@ display purposes anyway."
 (defun youtube-dl--request-args ()
   "Interactively request download arguments from user."
   (list (youtube-dl--request-url)
-        (youtube-dl--request-immediate)
+        (youtube-dl-request-immediate)
         current-prefix-arg))
 
-(defun youtube-dl--thing ()
+(defun youtube-dl-thing ()
   "Being invoked in the download listing buffer returns an item
 under point. Otherwise requests URL from user. Returns result
 as a list of one element suitable for use in `interactive' form."
