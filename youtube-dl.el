@@ -428,11 +428,12 @@ as a list of one element suitable for use in `interactive' form."
 
 (cl-defun youtube-dl-submit
     (videos
-     &optional immediate reverse
-     &key extract-audio directory (first 1) (priority 0) slow display)
-  "Submit listed videos to the download queue. If second argument
-is nil, the items start as paused. If third argument is non-nil
-the items are queued in reverse order.
+     &key immediate reverse extract-audio directory (first 1) (priority 0) slow display)
+  "Submit listed videos to the download queue.
+
+:immediate BOOL -- Submit for immediate download.
+
+:reverse BOOL -- Reverse playlist order.
 
 :extract-audio BOOL -- Extract audio content.
 
@@ -512,7 +513,8 @@ then playlist will be reversed.
 :display BOOL -- Pop up the listing positioned at the newly added content."
   (interactive (youtube-dl--request-args))
   (youtube-dl-submit (youtube-dl-playlist-list url)
-                     immediate reverse
+                     :immediate immediate
+                     :reverse reverse
                      :extract-audio extract-audio
                      :directory directory
                      :first first

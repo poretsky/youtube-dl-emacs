@@ -37,6 +37,7 @@
   (require 'youtube-dl))
 
 (declare-function youtube-dl "youtube-dl" (url &rest args))
+(declare-function youtube-dl-submit "youtube-dl" (videos &rest args))
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl--thing "youtube-dl")
 (declare-function youtube-dl--request-immediate "youtube-dl")
@@ -170,7 +171,7 @@ for download."
                          :type 'youtube-dl-view-download)))
       (unless (bolp)
         (insert "\n\n"))
-      (insert text)
+      (insert (or text ""))
       (goto-char (point-min))
       (while
           (search-forward-regexp
@@ -198,41 +199,47 @@ for download."
 ;;;###autoload
 (defun youtube-dl-view (thing)
   "Retrieves and shows info from specified URL or, being invoked
-in the download listing, for an item under point."
+in the download listing, for an item under point. If specified URL
+points to a playlist and it has more than one item, this playlist
+is submitted for download as paused and shown in the listing."
   (interactive (youtube-dl--thing))
-  (let* ((item
-          (if (stringp thing)
-              (let ((items (youtube-dl-playlist-list thing)))
-                (and (listp items) (car items)))
+  (let* ((playlist (and (stringp thing) (youtube-dl-playlist-list thing)))
+         (item
+          (if playlist
+              (car playlist)
             thing))
          (title
           (if (youtube-dl-item-p item)
               (youtube-dl-item-title item)
-            (and item (plist-get item :title))))
+            (plist-get item :title)))
          (filesize
           (if (youtube-dl-item-p item)
               (youtube-dl-item-filesize item)
-            (and item (plist-get item :filesize))))
+            (plist-get item :filesize)))
          (duration
           (if (youtube-dl-item-p item)
               (youtube-dl-item-duration item)
-            (and item (plist-get item :duration))))
+            (plist-get item :duration)))
          (text
           (if (youtube-dl-item-p item)
               (youtube-dl-item-description item)
-            (and item (plist-get item :description))))
+            (plist-get item :description)))
          (url
           (if (youtube-dl-item-p item)
               (youtube-dl-item-url item)
-            thing)))
-    (when (and (null text) (youtube-dl-item-p item))
-      (setq text (youtube-dl-view--retrieve-description url))
-      (youtube-dl-item-description-set item text))
-    (youtube-dl-view--show-description text url
-                                       (youtube-dl-item-p item)
-                                       :title title
-                                       :filesize filesize
-                                       :duration duration)))
+            (or (plist-get item :url) thing))))
+    (if (> (length playlist) 1)
+        (youtube-dl-submit playlist
+                           :display t)
+      (unless (or text (equal thing url))
+        (setq text (youtube-dl-view--retrieve-description url))
+        (when (youtube-dl-item-p item)
+          (youtube-dl-item-description-set item text)))
+      (youtube-dl-view--show-description text url
+                                         (youtube-dl-item-p item)
+                                         :title title
+                                         :filesize filesize
+                                         :duration duration))))
 
 (provide 'youtube-dl-view)
 
