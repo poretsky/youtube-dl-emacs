@@ -554,22 +554,10 @@ then playlist will be reversed.
 
 ;; List user interface:
 
-(defun youtube-dl-list-redisplay ()
-  "Immediately redraw the queue list buffer."
-  (interactive)
-  (with-current-buffer (youtube-dl--buffer)
-    (let ((save-point (point))
-          (window (get-buffer-window (current-buffer))))
-      (youtube-dl--fill-listing)
-      (setf (point) save-point)
-      (when window
-        (set-window-point window save-point))
-      (when hl-line-mode
-        (hl-line-highlight)))))
-
 (defun youtube-dl--redisplay ()
-  "Redraw the queue list buffer only if visible."
-  (let ((log-buffer (youtube-dl--log-buffer)))
+  "Redraw the queue list and log buffers only if visible."
+  (let ((listing-buffer (youtube-dl--buffer))
+        (log-buffer (youtube-dl--log-buffer)))
     (when log-buffer
       (with-current-buffer log-buffer
         (let ((inhibit-read-only t)
@@ -582,9 +570,17 @@ then playlist will be reversed.
             (set-window-point window
                               (if (< save-point save-max-point)
                                   save-point
-                                (point-max))))))))
-  (when (get-buffer-window (youtube-dl--buffer))
-    (youtube-dl-list-redisplay)))
+                                (point-max)))))))
+    (when (get-buffer-window listing-buffer)
+      (with-current-buffer listing-buffer
+        (let ((save-point (point))
+              (window (get-buffer-window)))
+          (youtube-dl--fill-listing)
+          (setf (point) save-point)
+          (when window
+            (set-window-point window save-point))
+          (when hl-line-mode
+            (hl-line-highlight)))))))
 
 (defun youtube-dl--pointed-item ()
   "Get item under point. Signal an error if none."
@@ -745,7 +741,6 @@ interactively operates on all items."
   (let ((map (make-sparse-keymap)))
     (prog1 map
       (define-key map "a" #'youtube-dl)
-      (define-key map "g" #'youtube-dl-list-redisplay)
       (define-key map "l" #'youtube-dl-list-log)
       (define-key map "L" #'youtube-dl-list-kill-log)
       (define-key map "y" #'youtube-dl-list-yank)
