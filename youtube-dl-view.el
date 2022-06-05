@@ -56,6 +56,15 @@
   "YouTube video descriptions view settings."
   :group 'youtube-dl)
 
+(defcustom youtube-dl-view-fill-column 0
+  "Column beyond which automatic line-wrapping should happen
+in view buffer. Positive number means just that column. If it is 0,
+full window width is used. Negative number means respective
+subtraction from the window width. If it is nil, no filling
+will be applied."
+  :group 'youtube-dl-view
+  :type '(choice (const :tag "No filling" nil) integer))
+
 (defface youtube-dl-view-title
   '((t :inherit font-lock-comment-face))
   "Face for highlighting item title."
@@ -171,8 +180,15 @@ for download."
                          :type 'youtube-dl-view-download)))
       (unless (bolp)
         (insert "\n\n"))
-      (insert (or text ""))
-      (goto-char (point-min))
+      (let ((start (point)))
+        (insert (or text ""))
+        (let ((fill-column
+               (if (> youtube-dl-view-fill-column 0)
+                   youtube-dl-view-fill-column
+                 (- (window-body-width) youtube-dl-view-fill-column))))
+          (fill-individual-paragraphs start (point) nil
+                                      "\\(?:[0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(?:\\.[0-9]+\\)? \\|.+: .+\\(?:@\\|://\\)"))
+        (goto-char start))
       (while
           (search-forward-regexp
            "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(\\(https?://\\)[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\([0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(\\.[0-9]+\\)?"
@@ -194,7 +210,8 @@ for download."
       (setf (point) (point-min))
       (when window
         (set-window-point window (point-min)))
-      (pop-to-buffer (current-buffer)))))
+      (let ((split-width-threshold nil))
+        (pop-to-buffer (current-buffer))))))
 
 ;;;###autoload
 (defun youtube-dl-view (thing)
