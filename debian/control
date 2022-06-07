@@ -1,0 +1,18 @@
+Source: youtube-dl-el
+Section: net
+Priority: optional
+Maintainer: Igor B. Poretsky <poretsky@mlbox.ru>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 4.3.0
+Homepage: https://github.com/poretsky/youtube-dl-emacs
+
+Package: youtube-dl-el
+Architecture: all
+Depends: emacs | emacsen, youtube-dl, ${misc:Depends}
+Recommends: mpv
+Suggests: w3m-el
+Description: Emacs interface for youtube-dl
+ This package manages download queue using youtube-dl as a backend.
+ In conjunction with mpv player it also can play videos online.
+ Amongst this, there is a capability to preview video descriptions
+ and intelligent integration with w3m-el web browser.

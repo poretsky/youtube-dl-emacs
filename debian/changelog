@@ -1,0 +1,5 @@
+youtube-dl-el (2.0-1buster1) buster; urgency=medium
+
+  * Initial package release.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Fri, 10 Jun 2022 07:50:29 +0300
