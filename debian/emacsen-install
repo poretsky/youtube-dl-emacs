@@ -1,0 +1,33 @@
+#! /bin/sh -e
+# /usr/lib/emacsen-common/packages/install/youtube-dl-el
+
+FLAVOR=$1
+PACKAGE=youtube-dl-el
+
+ELDIR=/usr/share/emacs/site-lisp/${PACKAGE}
+ELCDIR=/usr/share/${FLAVOR}/site-lisp/${PACKAGE}
+
+if [ ${FLAVOR} = emacs ]; then exit 0; fi
+
+echo install/${PACKAGE}: Handling install for emacsen flavor ${FLAVOR}
+
+# Install-info-altdir does not actually exist. 
+# Maybe somebody will write it.
+#if test -x /usr/sbin/install-info-altdir; then
+#    echo install/${PACKAGE}: install Info links for ${FLAVOR}
+#    install-info-altdir --quiet --section "" "" --dirname=${FLAVOR} /usr/info/${PACKAGE}.info.gz
+#fi
+
+install -m 755 -d ${ELCDIR}
+cd ${ELDIR}
+FILES=`echo *.el Makefile`
+cd ${ELCDIR}
+for file in $FILES
+do ln -s ../../../emacs/site-lisp/${PACKAGE}/$file
+done
+
+make -ks EMACS=${FLAVOR} > CompilationLog 2>&1
+rm -f Makefile
+gzip -9 -f ${ELCDIR}/CompilationLog
+
+exit 0
