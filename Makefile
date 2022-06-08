@@ -10,7 +10,7 @@ youtube-dl-loaddefs.el: youtube-dl.el youtube-dl-play.el youtube-dl-view.el yout
 		   (update-file-autoloads "youtube-dl.el" t) \
 		   (update-file-autoloads "youtube-dl-play.el" t) \
 		   (update-file-autoloads "youtube-dl-view.el" t) \
-		   (update-file-autoloads "youtube-dl-w3m.el" t)))'
+		   (update-file-autoloads "youtube-dl-w3m.el" t))'
 
 simulate: youtube-dl.elc
 	$(EMACS) -Q -L . -l tests/youtube-dl-simulate.el
