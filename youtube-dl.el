@@ -365,13 +365,25 @@ display purposes anyway."
           (setf youtube-dl-process proc))))
     (youtube-dl--redisplay)))
 
+(defvar youtube-dl-url-input-history nil
+  "URL input history for youtube-dl.")
+(defvar youtube-dl-x nil)
+
 (defun youtube-dl-request-url (&optional alternative)
   "Interactively requests URL from user.
 Suggests URL under point if any or an alternative provided
-as the optional argument."
-  (read-from-minibuffer "URL: "
-                        (or (thing-at-point 'url)
-                            alternative)))
+as the optional argument. The alternative may be a list of variants."
+  (let* ((url-under-point (thing-at-point 'url))
+         (default (nconc (and url-under-point (list url-under-point))
+                         (if (listp alternative)
+                             alternative
+                           (list alternative)))))
+    (setq youtube-dl-x default)
+    (read-string (format "URL%s: "
+                         (if default
+                             (format " (default is %s)" (car default))
+                           ""))
+                 nil 'youtube-dl-url-input-history default)))
 
 (defun youtube-dl--request-url ()
   "Interactively requests URL from user."
