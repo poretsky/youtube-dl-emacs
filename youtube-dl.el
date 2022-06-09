@@ -365,12 +365,19 @@ display purposes anyway."
           (setf youtube-dl-process proc))))
     (youtube-dl--redisplay)))
 
-(defun youtube-dl--request-url ()
-  "Interactively requests URL from user."
+(defun youtube-dl-request-url (&optional alternative)
+  "Interactively requests URL from user.
+Suggests URL under point if any or an alternative provided
+as the optional argument."
   (read-from-minibuffer "URL: "
                         (or (thing-at-point 'url)
-                            (when interprogram-paste-function
-                              (funcall interprogram-paste-function)))))
+                            alternative)))
+
+(defun youtube-dl--request-url ()
+  "Interactively requests URL from user."
+  (youtube-dl-request-url
+   (and interprogram-paste-function
+        (funcall interprogram-paste-function))))
 
 (defun youtube-dl-request-immediate ()
   "Ask user about immediate download if necessary."

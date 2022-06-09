@@ -34,6 +34,7 @@
 (declare-function youtube-dl "youtube-dl" (url &rest args))
 (declare-function youtube-dl-list "youtube-dl" (&optional position))
 (declare-function youtube-dl-request-immediate "youtube-dl")
+(declare-function youtube-dl-request-url "youtube-dl" (&optional alternative))
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl-play "youtube-dl-play" (url))
 (declare-function youtube-dl-view "youtube-dl-view" (url))
@@ -95,9 +96,7 @@ started as paused."
   "Guess an URL for operation or request it from user."
   (cl-declare (special w3m-current-url))
   (or (youtube-dl-w3m--current-anchor)
-      (read-from-minibuffer "URL: "
-                            (or (thing-at-point 'url)
-                                w3m-current-url))))
+      (youtube-dl-request-url w3m-current-url)))
 
 (defun youtube-dl-w3m--request-args ()
   "Interactively request download arguments from user."
