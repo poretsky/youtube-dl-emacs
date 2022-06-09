@@ -377,7 +377,9 @@ as the optional argument."
   "Interactively requests URL from user."
   (youtube-dl-request-url
    (and interprogram-paste-function
-        (funcall interprogram-paste-function))))
+        (with-temp-buffer
+          (insert (or (funcall interprogram-paste-function) ""))
+          (thing-at-point 'url)))))
 
 (defun youtube-dl-request-immediate ()
   "Ask user about immediate download if necessary."
