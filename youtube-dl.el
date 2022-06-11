@@ -110,7 +110,7 @@ for downloaded files."
   '("https?://youtu\\.be/[-_a-zA-Z0-9]\\{11\\}"
     "https?://\\(?:www\\.\\)?youtube\\.com/watch\\?v\\(?:=\\|%3D\\)[-_a-zA-Z0-9]\\{11\\}")
   "Patterns that match to directly playable URLs."
-  :group 'youtube-dl-w3m
+  :group 'youtube-dl
   :type '(repeat regexp))
 
 (defconst youtube-dl-audio-quality
