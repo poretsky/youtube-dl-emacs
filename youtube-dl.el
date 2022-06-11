@@ -153,6 +153,11 @@ Any other value means to ask for each queueing item."
                  (const :tag "No" nil)
                  (const :tag "Ask" t)))
 
+(defcustom youtube-dl-include-metadata nil
+  "Whether to include metadata in the downloaded files."
+  :group 'youtube-dl
+  :type 'boolean)
+
 (defface youtube-dl-active
   '((t :inherit font-lock-function-name-face))
   "Face for highlighting the active download item."
@@ -349,6 +354,8 @@ display purposes anyway."
                                  (list "--no-mtime"))
                                (when youtube-dl-restrict-filenames
                                  (list "--restrict-filenames"))
+                               (when youtube-dl-include-metadata
+                                 (list "--add-metadata"))
                                (when audio-p
                                  (list "-x"))
                                (when audio-format
