@@ -140,6 +140,13 @@ user suggesting reasonable default."
   (interactive (list (youtube-dl-w3m--guess-url)))
   (youtube-dl-play url))
 
+(defun youtube-dl-w3m-view (url)
+  "Shows video description for specified URL. Being called interactively
+uses an anchor at point. If no anchor exists at point, requests an URL
+from user suggesting reasonable default."
+  (interactive (list (youtube-dl-w3m--guess-url)))
+  (youtube-dl-view url))
+
 (defvar youtube-dl-w3m-menu
   (let ((menu (make-sparse-keymap "YouTube download and playback")))
     (define-key menu [schedule]
@@ -148,6 +155,8 @@ user suggesting reasonable default."
       '(menu-item "Submit download audio" youtube-dl-w3m-audio))
     (define-key menu [play]
       '(menu-item "Play video clip" youtube-dl-w3m-play))
+    (define-key menu [view]
+      '(menu-item "View video clip info" youtube-dl-w3m-view))
     (define-key menu [list]
       '(menu-item "Show download queue" youtube-dl-list))
     menu)
