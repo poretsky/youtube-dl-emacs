@@ -2,7 +2,7 @@
 # /usr/lib/emacsen-common/packages/remove/youtube-dl-el
 
 FLAVOR=$1
-PACKAGE=youtute-dl-el
+PACKAGE=youtube-dl-el
 
 if [ ${FLAVOR} != emacs ]; then
 #    if test -x /usr/sbin/install-info-altdir; then
