@@ -158,40 +158,44 @@ Any other value means to ask for each queueing item."
   :group 'youtube-dl
   :type 'boolean)
 
+(defgroup youtube-dl-faces ()
+  "Download listing display faces."
+  :group 'youtube-dl)
+
 (defface youtube-dl-active
   '((t :inherit font-lock-function-name-face))
   "Face for highlighting the active download item."
-  :group 'youtube-dl)
+  :group 'youtube-dl-faces)
 
 (defface youtube-dl-playlist-title
   '((t :inherit font-lock-comment-face))
   "Face for highlighting a playlist title."
-  :group 'youtube-dl)
+  :group 'youtube-dl-faces)
 
 (defface youtube-dl-slow
   '((t :inherit font-lock-variable-name-face))
   "Face for highlighting the slow (S) tag."
-  :group 'youtube-dl)
+  :group 'youtube-dl-faces)
 
 (defface youtube-dl-pause
   '((t :inherit font-lock-type-face))
   "Face for highlighting the pause (P) tag."
-  :group 'youtube-dl)
+  :group 'youtube-dl-faces)
 
 (defface youtube-dl-audio-content
   '((t :inherit font-lock-preprocessor-face))
   "Face for highlighting the audio content (A) tag."
-  :group 'youtube-dl)
+  :group 'youtube-dl-faces)
 
 (defface youtube-dl-priority
   '((t :inherit font-lock-keyword-face))
   "Face for highlighting the priority marker."
-  :group 'youtube-dl)
+  :group 'youtube-dl-faces)
 
 (defface youtube-dl-failure
   '((t :inherit font-lock-warning-face))
   "Face for highlighting the failure marker."
-  :group 'youtube-dl)
+  :group 'youtube-dl-faces)
 
 (defvar-local youtube-dl--log-item nil
   "Item currently being displayed in the log buffer.")
