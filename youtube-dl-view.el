@@ -65,20 +65,24 @@ will be applied."
   :group 'youtube-dl-view
   :type '(choice (const :tag "No filling" nil) integer))
 
+(defgroup youtube-dl-view-faces ()
+  "Video description display faces."
+  :group 'youtube-dl-view)
+
 (defface youtube-dl-view-title
   '((t :inherit font-lock-comment-face))
   "Face for highlighting item title."
-  :group 'youtube-dl-view)
+  :group 'youtube-dl-view-faces)
 
 (defface youtube-dl-view-header
   '((t :inherit font-lock-comment-delimiter-face))
   "Face for highlighting header titles."
-  :group 'youtube-dl-view)
+  :group 'youtube-dl-view-faces)
 
 (defface youtube-dl-view-header-value
   '((t :inherit font-lock-comment-face))
   "Face for highlighting header values."
-  :group 'youtube-dl-view)
+  :group 'youtube-dl-view-faces)
 
 (define-button-type 'youtube-dl-view-play-start-time 'action
   (lambda (button)
