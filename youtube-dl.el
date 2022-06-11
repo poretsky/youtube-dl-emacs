@@ -108,6 +108,7 @@ for downloaded files."
 
 (defcustom youtube-dl-playable-urls
   '("https?://youtu\\.be/[-_a-zA-Z0-9]\\{11\\}"
+    "https?://\\(?:www\\.\\)?youtube\\.com/shorts/[-_a-zA-Z0-9]\\{11\\}"
     "https?://\\(?:www\\.\\)?youtube\\.com/watch\\?v\\(?:=\\|%3D\\)[-_a-zA-Z0-9]\\{11\\}")
   "Patterns that match to directly playable URLs."
   :group 'youtube-dl
