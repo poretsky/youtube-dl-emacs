@@ -1,3 +1,9 @@
+youtube-dl-el (2.1-2buster1) buster; urgency=medium
+
+  * Emacsen scripts fix.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Sat, 11 Jun 2022 10:00:30 +0300
+
 youtube-dl-el (2.1-1buster1) buster; urgency=medium
 
   * Wrong customization group membership fix.
