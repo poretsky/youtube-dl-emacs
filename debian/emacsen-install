@@ -28,7 +28,9 @@ if [ ${FLAVOR} != emacs ]; then
 fi
 
 make -ks EMACS=${FLAVOR} > CompilationLog 2>&1
-rm -f Makefile
+if [ ${FLAVOR} != emacs ]
+then rm -f Makefile
+fi
 gzip -9 -f ${ELCDIR}/CompilationLog
 
 exit 0
