@@ -79,14 +79,11 @@ started as paused."
 
 (defun youtube-dl-w3m--downloadable-p (url)
   "Test given URL if it is downloadable."
-  (or (youtube-dl-playable-p url)
-      (let ((patterns youtube-dl-w3m-downloadable-urls)
-            (matched nil))
-        (while (and patterns (not matched))
-          (if (string-match (car patterns) url)
-              (setq matched t)
-            (setq patterns (cdr patterns))))
-        matched)))
+  (cl-declare (special youtube-dl-playable-urls))
+  (let ((youtube-dl-playable-urls
+         (nconc (cl-copy-list youtube-dl-playable-urls)
+                youtube-dl-w3m-downloadable-urls)))
+    (youtube-dl-playable-p url)))
 
 (defun youtube-dl-w3m--current-anchor ()
   "Get an URL from current anchor if any."
