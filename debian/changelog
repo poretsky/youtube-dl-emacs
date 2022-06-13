@@ -1,3 +1,9 @@
+youtube-dl-el (2.2-1bionic1) bionic; urgency=medium
+
+  * Fixed interaction with w3m.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Mon, 13 Jun 2022 21:39:28 +0300
+
 youtube-dl-el (2.1-2bionic1) bionic; urgency=medium
 
   * Package removal fix.
