@@ -175,8 +175,10 @@ Uses `w3m-view-this-url' as a fallback."
   (interactive)
   (let ((url (youtube-dl-w3m--current-anchor)))
     (cond
+     ((or current-prefix-arg
+          (not (stringp url)))
+      (call-interactively 'w3m-view-this-url))
      ((and youtube-dl-w3m-auto-play
-           (not current-prefix-arg)
            (youtube-dl-playable-p url)
            (or (eq youtube-dl-w3m-auto-play 'always)
                (eq youtube-dl-w3m-auto-play 'preview)
@@ -185,7 +187,6 @@ Uses `w3m-view-this-url' as a fallback."
           (youtube-dl-view url)
         (youtube-dl-play url)))
      ((and youtube-dl-w3m-auto-download
-           (not current-prefix-arg)
            (youtube-dl-w3m--downloadable-p url)
            (or (eq youtube-dl-w3m-auto-download 'always)
                (y-or-n-p "Schedule download? ")))
