@@ -190,6 +190,8 @@ for download."
         (insert "\n\n"))
       (let ((start (point)))
         (insert (or text ""))
+        (unless (= (char-before) ?\n)
+          (insert "\n"))
         (goto-char start)
         (while
             (re-search-forward
@@ -206,7 +208,7 @@ for download."
             (fill-individual-paragraphs start (point-max) nil
                                         (concat
                                          youtube-dl-view-time-spec
-                                         " \\|.+: .+\\(?:@\\|://\\)"))))
+                                         " \\|.+[ \t\n][^ \t\n]+\\(?:@\\|://\\)"))))
         (goto-char start))
       (while
           (re-search-forward
