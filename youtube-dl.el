@@ -430,7 +430,7 @@ as a list of one element suitable for use in `interactive' form."
   "For each video, return one plist with :index, :id,
 :url, :playlist, :playlist-url, :title, and :description."
   (with-temp-buffer
-    (when (zerop (call-process youtube-dl-program nil t nil
+    (when (zerop (call-process youtube-dl-program nil '(t nil) nil
                                "--ignore-config"
                                "--dump-json"
                                "--flat-playlist"
