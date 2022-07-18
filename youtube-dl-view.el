@@ -141,6 +141,10 @@ will be applied."
         (buffer-string)
       "")))
 
+(defconst youtube-dl-view-time-spec
+  "\\(?:[0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(?:\\.[0-9]+\\)?"
+  "Timespec matching regexp.")
+
 (cl-defun youtube-dl-view--show-description
     (text url submitted-p &key title filesize duration)
   "Show a description represented by given text.
@@ -192,11 +196,15 @@ for download."
                      youtube-dl-view-fill-column
                    (- (window-body-width) youtube-dl-view-fill-column))))
             (fill-individual-paragraphs start (point) nil
-                                        "\\(?:[0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(?:\\.[0-9]+\\)? \\|.+: .+\\(?:@\\|://\\)")))
+                                        (concat
+                                         youtube-dl-view-time-spec
+                                         " \\|.+: .+\\(?:@\\|://\\)"))))
         (goto-char start))
       (while
           (search-forward-regexp
-           "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(\\(https?://\\)[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\([0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(\\.[0-9]+\\)?"
+           (concat
+            "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(\\(https?://\\)[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^"
+            youtube-dl-view-time-spec)
            (point-max) t)
         (cond
          ((match-string 1)
