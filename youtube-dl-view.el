@@ -50,6 +50,7 @@
 (declare-function youtube-dl-item-description "youtube-dl" (item))
 (declare-function youtube-dl-item-description-set "youtube-dl" (item text))
 (declare-function youtube-dl-play "youtube-dl-play" (url &optional start))
+(declare-function w3m-bookmark-add "w3m-bookmark" (url &optional title))
 
 ;;;###autoload
 (defgroup youtube-dl-view ()
@@ -119,10 +120,21 @@ will be applied."
     (compose-mail (thing-at-point 'email)))
   :supertype 'button)
 
+(defun youtube-dl-view-add-w3m-bookmark ()
+  "Add currently viewed clip to the w3m bookmarks."
+  (interactive)
+  (cl-declare (special youtube-dl-view-current-url))
+  (unless (eq major-mode 'youtube-dl-view-mode)
+    (error "Not in youtube-dl-view buffer."))
+  (require 'w3m-bookmark)
+  (w3m-bookmark-add youtube-dl-view-current-url header-line-format)
+  (message "Bookmark added"))
+
 (defvar youtube-dl-view-mode-map
   (let ((map (make-sparse-keymap)))
     (prog1 map
       (set-keymap-parent map button-buffer-map)
+      (define-key map "a" #'youtube-dl-view-add-w3m-bookmark)
       (define-key map "q" #'quit-window)))
   "Keymap for `youtube-dl-view-mode'")
 
