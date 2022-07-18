@@ -190,12 +190,20 @@ for download."
         (insert "\n\n"))
       (let ((start (point)))
         (insert (or text ""))
+        (goto-char start)
+        (while
+            (re-search-forward
+             (concat
+              "\\( +\\)"
+              youtube-dl-view-time-spec)
+             nil t)
+          (replace-match "\n" nil nil nil 1))
         (when (integerp youtube-dl-view-fill-column)
           (let ((fill-column
                  (if (> youtube-dl-view-fill-column 0)
                      youtube-dl-view-fill-column
                    (- (window-body-width) youtube-dl-view-fill-column))))
-            (fill-individual-paragraphs start (point) nil
+            (fill-individual-paragraphs start (point-max) nil
                                         (concat
                                          youtube-dl-view-time-spec
                                          " \\|.+: .+\\(?:@\\|://\\)"))))
