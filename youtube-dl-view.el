@@ -201,11 +201,11 @@ for download."
                                          " \\|.+: .+\\(?:@\\|://\\)"))))
         (goto-char start))
       (while
-          (search-forward-regexp
+          (re-search-forward
            (concat
-            "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(\\(https?://\\)[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^"
+            "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(https?://[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^"
             youtube-dl-view-time-spec)
-           (point-max) t)
+           nil t)
         (cond
          ((match-string 1)
           (let ((link (bounds-of-thing-at-point 'email)))
