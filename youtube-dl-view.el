@@ -88,9 +88,10 @@ will be applied."
   (lambda (button)
     (cl-declare (special youtube-dl-view-current-url))
     (youtube-dl-play youtube-dl-view-current-url
-                     (buffer-substring-no-properties
-                      (button-start button)
-                      (button-end button))))
+                     (or (button-get button 'start-time)
+                         (buffer-substring-no-properties
+                          (button-start button)
+                          (button-end button)))))
   :supertype 'button)
 
 (define-button-type 'youtube-dl-view-play 'action
@@ -208,13 +209,16 @@ for download."
             (fill-individual-paragraphs start (point-max) nil
                                         (concat
                                          youtube-dl-view-time-spec
-                                         " \\|.+[ \t\n][^ \t\n]+\\(?:@\\|://\\)"))))
+                                         " \\|[0-9]+\\. \\|.+[ \t\n][^ \t\n]+\\(?:@\\|://\\)"))))
         (goto-char start))
       (while
           (re-search-forward
            (concat
-            "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(https?://[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^"
-            youtube-dl-view-time-spec)
+            "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(https?://[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\(?:\\(\\([0-9]+\\.\\) .*(\\("
+            youtube-dl-view-time-spec
+            "\\))\\)\\|"
+            youtube-dl-view-time-spec
+            "\\)")
            nil t)
         (cond
          ((match-string 1)
@@ -227,6 +231,10 @@ for download."
             (when link
               (make-button (car link) (cdr link)
                            :type 'youtube-dl-view-link))))
+         ((match-string 3)
+          (make-button (match-beginning 4) (match-end 4)
+                       'start-time (buffer-substring-no-properties (match-beginning 5) (match-end 5))
+                       :type 'youtube-dl-view-play-start-time))
          (t (make-button (match-beginning 0) (match-end 0)
                          :type 'youtube-dl-view-play-start-time))))
       (set (make-local-variable 'youtube-dl-view-current-url) url)
