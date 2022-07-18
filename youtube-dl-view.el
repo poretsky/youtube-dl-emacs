@@ -147,7 +147,7 @@ will be applied."
   "Get description from URL and return it as a string."
   (cl-declare (special youtube-dl-program))
   (with-temp-buffer
-    (if (zerop (call-process youtube-dl-program nil t nil
+    (if (zerop (call-process youtube-dl-program nil '(t nil) nil
                              "--ignore-config"
                              "--get-description"
                              url))
