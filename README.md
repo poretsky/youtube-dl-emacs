@@ -102,6 +102,9 @@ anchor tries to suggest an applicable youtube-dl action guessing it
 from the URL nature. When no special actions are guessed, the anchor
 is visited with `w3m-view-this-url` in the usual way.
 
+Link to a video clip can be saved as a w3m bookmark directly from the
+youtube-dl view buffer by pressing <kbd>a</kbd>.
+
 When youtube-dl playback or download submission is invoked on an
 anchor, the anchor URL is used. Otherwise the URL is requested from
 the user. After download submission the download control buffer pops
