@@ -117,7 +117,7 @@ will be applied."
 
 (define-button-type 'youtube-dl-view-mail 'action
   (lambda (_button)
-    (compose-mail (thing-at-point 'email)))
+    (compose-mail (thing-at-point 'email t)))
   :supertype 'button)
 
 (defun youtube-dl-view-add-w3m-bookmark ()
