@@ -112,7 +112,15 @@ will be applied."
 
 (define-button-type 'youtube-dl-view-link 'action
   (lambda (_button)
-    (browse-url-at-point))
+    (cl-declare (special youtube-dl-program))
+    (let ((url (thing-at-point 'url t)))
+      (if (zerop (call-process youtube-dl-program nil nil nil
+                               "--ignore-config"
+                               "--simulate"
+                               "--flat-playlist"
+                               url))
+          (youtube-dl-view url)
+        (browse-url url))))
   :supertype 'button)
 
 (define-button-type 'youtube-dl-view-mail 'action
