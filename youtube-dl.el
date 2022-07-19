@@ -385,7 +385,7 @@ display purposes anyway."
   "Interactively requests URL from user.
 Suggests URL under point if any or an alternative provided
 as the optional argument. The alternative may be a list of variants."
-  (let* ((url-under-point (thing-at-point 'url))
+  (let* ((url-under-point (thing-at-point 'url t))
          (default (nconc (and url-under-point (list url-under-point))
                          (if (listp alternative)
                              alternative
@@ -403,7 +403,7 @@ as the optional argument. The alternative may be a list of variants."
    (and interprogram-paste-function
         (with-temp-buffer
           (insert (or (funcall interprogram-paste-function) ""))
-          (thing-at-point 'url)))))
+          (thing-at-point 'url t)))))
 
 (defun youtube-dl-request-immediate ()
   "Ask user about immediate download if necessary."
