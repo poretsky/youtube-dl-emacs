@@ -229,12 +229,12 @@ for download."
             (fill-individual-paragraphs start (point-max) nil
                                         (concat
                                          youtube-dl-view-time-spec
-                                         " \\|[0-9]+\\. \\|.+[ \t\n][^ \t\n]+\\(?:@\\|://\\)"))))
+                                         " \\|-*[0-9]+\\. \\|.+[ \t\n][^ \t\n]+\\(?:@\\|://\\)"))))
         (goto-char start))
       (while
           (re-search-forward
            (concat
-            "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(https?://[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\(?:\\(\\([0-9]+\\.\\) .*(\\("
+            "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(https?://[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\(?:\\(-*\\([0-9]+\\.\\) .*(\\("
             youtube-dl-view-time-spec
             "\\))\\)\\|"
             youtube-dl-view-time-spec
