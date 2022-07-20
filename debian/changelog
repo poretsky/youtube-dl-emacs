@@ -1,3 +1,13 @@
+youtube-dl-el (2.3-1xenial1) xenial; urgency=medium
+
+  * Clip info view appearance enhancement.
+  * Saving video clip links as w3m bookmarks.
+  * Smart links handling in clip view buffer.
+  * Viewing history.
+  * Increased site response variations tolerance and some other fixes.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Wed, 20 Jul 2022 06:57:07 +0300
+
 youtube-dl-el (2.2-1xenial1) xenial; urgency=medium
 
   * Fixed interaction with w3m.
