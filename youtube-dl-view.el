@@ -110,9 +110,15 @@ will be applied."
                 :display t))
   :supertype 'button)
 
+(defvar youtube-dl-view-history nil
+  "Viewing history.")
+
 (define-button-type 'youtube-dl-view-link 'action
   (lambda (_button)
-    (cl-declare (special youtube-dl-program))
+    (cl-declare (special youtube-dl-program youtube-dl-view-current-url))
+    (unless (and youtube-dl-view-history
+                 (string-equal (car youtube-dl-view-history) youtube-dl-view-current-url))
+      (push youtube-dl-view-current-url youtube-dl-view-history))
     (let ((url (thing-at-point 'url t)))
       (if (zerop (call-process youtube-dl-program nil nil nil
                                "--ignore-config"
@@ -127,6 +133,24 @@ will be applied."
   (lambda (_button)
     (compose-mail (thing-at-point 'email t)))
   :supertype 'button)
+
+(define-button-type 'youtube-dl-view-back 'action
+  (lambda (_button)
+    (when (and youtube-dl-view-history
+               (string-equal (car youtube-dl-view-history) youtube-dl-view-current-url))
+      (pop youtube-dl-view-history))
+    (unless youtube-dl-view-history
+      (error "No more history."))
+    (youtube-dl-view (pop youtube-dl-view-history)))
+  :supertype 'button)
+
+(defun youtube-dl-view-quit ()
+  "Clear history and close window."
+  (interactive)
+  (unless (eq major-mode 'youtube-dl-view-mode)
+    (error "Not in youtube-dl-view buffer."))
+  (setq youtube-dl-view-history nil)
+  (quit-window))
 
 (defun youtube-dl-view-add-w3m-bookmark ()
   "Add currently viewed clip to the w3m bookmarks."
@@ -143,7 +167,7 @@ will be applied."
     (prog1 map
       (set-keymap-parent map button-buffer-map)
       (define-key map "a" #'youtube-dl-view-add-w3m-bookmark)
-      (define-key map "q" #'quit-window)))
+      (define-key map "q" #'youtube-dl-view-quit)))
   "Keymap for `youtube-dl-view-mode'")
 
 (define-derived-mode youtube-dl-view-mode special-mode "youtube-dl-view"
@@ -212,6 +236,11 @@ for download."
       (let ((start (point)))
         (insert (or text ""))
         (unless (= (char-before) ?\n)
+          (insert "\n"))
+        (when youtube-dl-view-history
+          (insert "\n")
+          (insert-button "Back"
+                         :type 'youtube-dl-view-back)
           (insert "\n"))
         (goto-char start)
         (while
