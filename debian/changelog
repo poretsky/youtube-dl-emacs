@@ -1,3 +1,9 @@
+youtube-dl-el (2.3-2stretch1) stretch; urgency=medium
+
+  * Switch to dpkg-source 3.0 format.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Wed, 27 Jul 2022 20:39:18 +0300
+
 youtube-dl-el (2.3-1stretch1) stretch; urgency=medium
 
   * Clip info view appearance enhancement.
