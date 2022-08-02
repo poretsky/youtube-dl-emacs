@@ -508,7 +508,9 @@ as a list of one element suitable for use in `interactive' form."
              (prefix (if (and playlist index)
                          (format prefix-format index)
                        ""))
-             (title (format "%s%s" prefix (plist-get video :title)))
+             (title (format "%s%s" prefix
+                            (or (plist-get video :title)
+                                (plist-get video :id))))
              (dest (format "%s%s" prefix "%(title)s-%(id)s.%(ext)s"))
              (url (plist-get video :url))
              (full-dir (expand-file-name
