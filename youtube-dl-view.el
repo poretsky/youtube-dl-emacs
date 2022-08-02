@@ -217,7 +217,7 @@ for download."
                 (propertize (format-time-string "%T" (seconds-to-time duration) t)
                             'face 'youtube-dl-view-header-value)
                 "\n"))
-      (when (> (point) (point-min))
+      (unless (bobp)
         (insert "\n"))
       (when playable-p
         (insert-button "Play"
