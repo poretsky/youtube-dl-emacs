@@ -235,7 +235,7 @@ for download."
         (insert "\n\n"))
       (let ((start (point)))
         (insert (or text ""))
-        (unless (= (char-before) ?\n)
+        (unless (or (bobp) (= (char-before) ?\n))
           (insert "\n"))
         (when youtube-dl-view-history
           (insert "\n")
