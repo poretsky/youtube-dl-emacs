@@ -47,6 +47,7 @@
 
 (defcustom youtube-dl-w3m-downloadable-urls
   '("https?://\\(?:www\\.\\)?youtube\\.com/.+"
+    "https?://music.yandex.ru/album/[0-9]\\{8\\}"
     "https?://\\(?:www\\.\\)?\\(?:disk\\.yandex\\.ru\\|yadi\\.sk\\)/d/.+")
   "Additional patterns that match to downloadable URLs."
   :group 'youtube-dl-w3m
