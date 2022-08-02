@@ -213,7 +213,8 @@ Any other value means to ask for each queueing item."
   destination  ; Preferred destination file (string or nil)
   failures     ; Number of video download failures (integer)
   priority     ; Download priority (integer)
-  title        ; Listing display title (string or nil)
+  dest-name    ; Listing display title (string or nil)
+  title        ; Info display title (string or nil)
   filesize     ; Declared file size (number or nil)
   duration     ; Declared duration (number or nil)
   description  ; Item description cache (string or nil)
@@ -223,6 +224,18 @@ Any other value means to ask for each queueing item."
   log-end      ; Last log item (list of strings)
   paused-p     ; Non-nil if download is paused
   slow-p)      ; Non-nil if download should be rate limited
+
+(defun youtube-dl-item-title-set (item title)
+  "Set title for specified item."
+  (setf (youtube-dl-item-title item) title))
+
+(defun youtube-dl-item-filesize-set (item value)
+  "Set filesize value for specified item."
+  (setf (youtube-dl-item-filesize item) value))
+
+(defun youtube-dl-item-duration-set (item value)
+  "Set duration value for specified item."
+  (setf (youtube-dl-item-duration item) value))
 
 (defun youtube-dl-item-description-set (item text)
   "Set description text for specified item."
@@ -295,7 +308,7 @@ display purposes anyway."
 (defun youtube-dl--filter (proc output)
   (let* ((item (plist-get (process-plist proc) :item))
          (progress (youtube-dl--progress output))
-         (destination (unless (youtube-dl-item-title item)
+         (destination (unless (youtube-dl-item-dest-name item)
                         (youtube-dl--destination output))))
     ;; Append to program log.
     (let ((logged (list output)))
@@ -311,7 +324,7 @@ display purposes anyway."
               (youtube-dl-item-total item) total)))
     ;; Set a title if needed.
     (when destination
-      (setf (youtube-dl-item-title item) destination))
+      (setf (youtube-dl-item-dest-name item) destination))
     (youtube-dl--redisplay)))
 
 (defun youtube-dl--current ()
@@ -532,7 +545,8 @@ as a list of one element suitable for use in `interactive' form."
                     :description (plist-get video :description)
                     :filesize (plist-get video :filesize)
                     :duration (plist-get video :duration)
-                    :title title
+                    :title (plist-get video :title)
+                    :dest-name title
                     :playlist playlist
                     :playlist-url (plist-get video :playlist-url)
                     :audio-p extract-audio
@@ -884,7 +898,10 @@ active item or at the beginning of buffer if no active item exists."
                (paused-p (youtube-dl-item-paused-p item))
                (slow-p (youtube-dl-item-slow-p item))
                (total (youtube-dl-item-total item))
-               (title (or (youtube-dl-item-title item) id))
+               (title
+                (or (youtube-dl-item-dest-name item)
+                    (youtube-dl-item-title item)
+                    id))
                (playlist (youtube-dl-item-playlist item))
                (playlist-url (youtube-dl-item-playlist-url item))
                (start (point)))
