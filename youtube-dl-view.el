@@ -48,6 +48,9 @@
 (declare-function youtube-dl-item-filesize "youtube-dl" (item))
 (declare-function youtube-dl-item-duration "youtube-dl" (item))
 (declare-function youtube-dl-item-description "youtube-dl" (item))
+(declare-function youtube-dl-item-title-set "youtube-dl" (item title))
+(declare-function youtube-dl-item-filesize-set "youtube-dl" (item value))
+(declare-function youtube-dl-item-duration-set "youtube-dl" (item value))
 (declare-function youtube-dl-item-description-set "youtube-dl" (item text))
 (declare-function youtube-dl-play "youtube-dl-play" (url &optional start))
 (declare-function w3m-bookmark-add "w3m-bookmark" (url &optional title))
@@ -175,17 +178,6 @@ will be applied."
   :group 'youtube-dl-view
   (use-local-map youtube-dl-view-mode-map))
 
-(defun youtube-dl-view--retrieve-description (url)
-  "Get description from URL and return it as a string."
-  (cl-declare (special youtube-dl-program))
-  (with-temp-buffer
-    (if (zerop (call-process youtube-dl-program nil '(t nil) nil
-                             "--ignore-config"
-                             "--get-description"
-                             url))
-        (buffer-string)
-      "")))
-
 (defconst youtube-dl-view-time-spec
   "\\(?:[0-9]+:\\)?[0-9][0-9]:[0-9][0-9]\\(?:\\.[0-9]+\\)?"
   "Timespec matching regexp.")
@@ -300,7 +292,16 @@ in the download listing, for an item under point. If specified URL
 points to a playlist and it has more than one item, this playlist
 is submitted for download as paused and shown in the listing."
   (interactive (youtube-dl-thing))
-  (let* ((playlist (and (stringp thing) (youtube-dl-playlist-list thing)))
+  (let* ((submitted-p (youtube-dl-item-p thing))
+         (playlist
+          (cond
+           ((stringp thing)
+            (youtube-dl-playlist-list thing))
+           ((and submitted-p
+                 (not (youtube-dl-item-description thing))
+                 (not (youtube-dl-item-title thing)))
+            (youtube-dl-playlist-list (youtube-dl-item-url thing)))
+           (t nil)))
          (item
           (if playlist
               (car playlist)
@@ -308,7 +309,8 @@ is submitted for download as paused and shown in the listing."
          (title
           (if (youtube-dl-item-p item)
               (youtube-dl-item-title item)
-            (plist-get item :title)))
+            (or (plist-get item :title)
+                (plist-get item :id))))
          (filesize
           (if (youtube-dl-item-p item)
               (youtube-dl-item-filesize item)
@@ -318,9 +320,10 @@ is submitted for download as paused and shown in the listing."
               (youtube-dl-item-duration item)
             (plist-get item :duration)))
          (text
-          (if (youtube-dl-item-p item)
-              (youtube-dl-item-description item)
-            (plist-get item :description)))
+          (or (if (youtube-dl-item-p item)
+                  (youtube-dl-item-description item)
+                (plist-get item :description))
+              ""))
          (url
           (if (youtube-dl-item-p item)
               (youtube-dl-item-url item)
@@ -328,12 +331,12 @@ is submitted for download as paused and shown in the listing."
     (if (> (length playlist) 1)
         (youtube-dl-submit playlist
                            :display t)
-      (unless (or text (equal thing url))
-        (setq text (youtube-dl-view--retrieve-description url))
-        (when (youtube-dl-item-p item)
-          (youtube-dl-item-description-set item text)))
-      (youtube-dl-view--show-description text url
-                                         (youtube-dl-item-p item)
+      (when (and submitted-p playlist)
+        (youtube-dl-item-title-set thing title)
+        (youtube-dl-item-description-set thing text)
+        (youtube-dl-item-filesize-set thing filesize)
+        (youtube-dl-item-duration-set thing duration))
+      (youtube-dl-view--show-description text url submitted-p
                                          :title title
                                          :filesize filesize
                                          :duration duration))))
