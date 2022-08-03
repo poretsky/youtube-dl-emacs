@@ -297,19 +297,21 @@ since this is just used for display purposes."
             start (match-end 0)))
     pair))
 
-(defun youtube-dl--destination (output)
-  "Return the destination file for the given output (if any).
+(defun youtube-dl--destination (item output)
+  "Return the destination name for the given item and output (if any).
 The destination filename may potentially straddle two output
 chunks, but this is incredibly unlikely. It's only used for
 display purposes anyway."
-  (when (string-match " Destination: \\([^\n]+\\)" output)
+  (when (string-match (format " Destination: \\([^\n]+\\)-%s\\."
+                              (youtube-dl-item-id item))
+                      output)
     (match-string 1 output)))
 
 (defun youtube-dl--filter (proc output)
   (let* ((item (plist-get (process-plist proc) :item))
          (progress (youtube-dl--progress output))
          (destination (unless (youtube-dl-item-title item)
-                        (youtube-dl--destination output))))
+                        (youtube-dl--destination item output))))
     ;; Append to program log.
     (let ((logged (list output)))
       (if (youtube-dl-item-log item)
