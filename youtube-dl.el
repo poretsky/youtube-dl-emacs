@@ -308,7 +308,7 @@ display purposes anyway."
 (defun youtube-dl--filter (proc output)
   (let* ((item (plist-get (process-plist proc) :item))
          (progress (youtube-dl--progress output))
-         (destination (unless (youtube-dl-item-dest-name item)
+         (destination (unless (youtube-dl-item-title item)
                         (youtube-dl--destination output))))
     ;; Append to program log.
     (let ((logged (list output)))
