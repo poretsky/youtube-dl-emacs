@@ -229,6 +229,10 @@ Any other value means to ask for each queueing item."
   "Set title for specified item."
   (setf (youtube-dl-item-title item) title))
 
+(defun youtube-dl-item-dest-name-set (item name)
+  "Set destination name for specified item."
+  (setf (youtube-dl-item-dest-name item) name))
+
 (defun youtube-dl-item-filesize-set (item value)
   "Set filesize value for specified item."
   (setf (youtube-dl-item-filesize item) value))
@@ -327,7 +331,7 @@ display purposes anyway."
     ;; Set a title if needed.
     (when destination
       (setf (youtube-dl-item-dest-name item) destination))
-    (youtube-dl--redisplay)))
+    (youtube-dl-redisplay)))
 
 (defun youtube-dl--current ()
   "Return the item currently being downloaded."
@@ -339,7 +343,7 @@ display purposes anyway."
   (let ((item (youtube-dl--next))
         (current-item (youtube-dl--current)))
     (if (eq item current-item)
-        (youtube-dl--redisplay) ; do nothing
+        (youtube-dl-redisplay) ; do nothing
       (if youtube-dl-process
           (progn
             ;; Switch to higher priority job, but offset error count first.
@@ -391,7 +395,7 @@ display purposes anyway."
           (set-process-sentinel proc #'youtube-dl--sentinel)
           (set-process-filter proc #'youtube-dl--filter)
           (setf youtube-dl-process proc))))
-    (youtube-dl--redisplay)))
+    (youtube-dl-redisplay)))
 
 (defvar youtube-dl-url-input-history nil
   "URL input history for youtube-dl.")
@@ -630,7 +634,7 @@ then playlist will be reversed.
 
 ;; List user interface:
 
-(defun youtube-dl--redisplay ()
+(defun youtube-dl-redisplay ()
   "Redraw the queue list and log buffers only if visible."
   (let ((listing-buffer (youtube-dl--buffer))
         (log-buffer (youtube-dl--log-buffer)))
@@ -672,7 +676,7 @@ then playlist will be reversed.
   "Display the log of the video under point."
   (interactive)
   (display-buffer (youtube-dl--log-buffer (youtube-dl--pointed-item)))
-  (youtube-dl--redisplay))
+  (youtube-dl-redisplay))
 
 (defun youtube-dl-list-kill-log ()
   "Kill the youtube-dl log buffer."
@@ -762,7 +766,7 @@ which header is under point."
         (setf (youtube-dl-item-paused-p thing) (not paused-p))
         (if (or (null current) (eq thing current))
             (youtube-dl--run)
-          (youtube-dl--redisplay)))
+          (youtube-dl-redisplay)))
     (youtube-dl-list-toggle-pause-all (youtube-dl--playlist-items thing))))
 
 (defun youtube-dl-list-toggle-pause-all (items)
@@ -785,7 +789,7 @@ which header is under point."
       (let ((slow-p (youtube-dl-item-slow-p thing)))
         (setf (youtube-dl-item-slow-p thing) (not slow-p))
         (if (not (eq thing (youtube-dl--current)))
-            (youtube-dl--redisplay)
+            (youtube-dl-redisplay)
           ;; Offset error count and restart the process.
           (cl-decf (youtube-dl-item-failures thing))
           (kill-process youtube-dl-process)))
