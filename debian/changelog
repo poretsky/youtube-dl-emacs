@@ -1,3 +1,12 @@
+youtube-dl-el (2.4-1xenial1) xenial; urgency=medium
+
+  * When item title is unknown, its id is used instead.
+  * Yandex music URL patterns added.
+  * Clip info extraction and representation enhancement.
+  * Playback process controllability fix.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Wed, 03 Aug 2022 20:47:55 +0300
+
 youtube-dl-el (2.3-2xenial1) xenial; urgency=medium
 
   * Switch to dpkg-source 3.0 format.
