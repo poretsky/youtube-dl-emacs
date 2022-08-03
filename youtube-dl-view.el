@@ -298,8 +298,8 @@ is submitted for download as paused and shown in the listing."
            ((stringp thing)
             (youtube-dl-playlist-list thing))
            ((and submitted-p
-                 (not (youtube-dl-item-description thing))
-                 (not (youtube-dl-item-title thing)))
+                 (or (not (youtube-dl-item-description thing))
+                     (not (youtube-dl-item-title thing))))
             (youtube-dl-playlist-list (youtube-dl-item-url thing)))
            (t nil)))
          (item
