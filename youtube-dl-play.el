@@ -80,7 +80,7 @@ argument, if non-nil, is treated as start time specification string."
             thing))
          (proc
           (apply #'start-process "mpv" nil youtube-dl-play-program
-                 "--no-terminal" "--ytdl"
+                 "--profile=pseudo-gui" "--ytdl"
                  (nconc (list youtube-dl-play-fullscreen)
                         (when youtube-dl-play-format
                           `("--ytdl-format" ,youtube-dl-play-format))
