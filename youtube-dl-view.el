@@ -183,7 +183,7 @@ will be applied."
   (use-local-map youtube-dl-view-mode-map))
 
 (defconst youtube-dl-view-time-spec
-  "\\(?:[0-9]+:\\)?[0-9]?[0-9]:[0-9][0-9]\\(?:\\.[0-9]+\\)?"
+  "\\(?:[0-9]+:\\)?[0-5]?[0-9]:[0-5][0-9]\\(?:\\.[0-9]+\\)?"
   "Timespec matching regexp.")
 
 (cl-defun youtube-dl-view--show-description
