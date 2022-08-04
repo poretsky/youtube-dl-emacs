@@ -338,9 +338,9 @@ is submitted for download as paused and shown in the listing."
       (when (and submitted-p playlist)
         (youtube-dl-item-title-set thing title)
         (let ((name (youtube-dl-item-dest-name thing)))
-          (when (string-match (format "^\\([0-9]+-\\)?\\(%s\\)" (youtube-dl-item-id thing)) name)
+          (when (string-match (format "^\\(?:[0-9]+-\\)?\\(%s\\)" (youtube-dl-item-id thing)) name)
             (youtube-dl-item-dest-name-set
-             thing (replace-match title nil nil name 2))
+             thing (replace-match title nil nil name 1))
             (youtube-dl-redisplay)))
         (youtube-dl-item-description-set thing text)
         (youtube-dl-item-filesize-set thing filesize)
