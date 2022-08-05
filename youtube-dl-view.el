@@ -94,8 +94,7 @@ will be applied."
 
 (define-button-type 'youtube-dl-view-play-start-time 'action
   (lambda (button)
-    (cl-declare (special youtube-dl-view-current-url))
-    (youtube-dl-play youtube-dl-view-current-url
+    (youtube-dl-play (youtube-dl-view--current-url)
                      (or (button-get button 'start-time)
                          (buffer-substring-no-properties
                           (button-start button)
@@ -104,15 +103,14 @@ will be applied."
 
 (define-button-type 'youtube-dl-view-play 'action
   (lambda (_button)
-    (cl-declare (special youtube-dl-view-current-url))
-    (youtube-dl-play youtube-dl-view-current-url))
+    (youtube-dl-play (youtube-dl-view--current-url)))
   :supertype 'button)
 
 (define-button-type 'youtube-dl-view-download 'action
   (lambda (button)
-    (cl-declare (special youtube-dl-view-current-url))
-    (youtube-dl youtube-dl-view-current-url
-                (youtube-dl-request-immediate) nil
+    (cl-declare (special youtube-dl-view-item))
+    (youtube-dl-submit (list youtube-dl-view-item)
+                :immediate (youtube-dl-request-immediate)
                 :extract-audio (button-get button 'audio-only)
                 :display t))
   :supertype 'button)
@@ -120,12 +118,22 @@ will be applied."
 (defvar youtube-dl-view-history nil
   "Viewing history.")
 
+(defun youtube-dl-view--current-url ()
+  "Return currently viewed item url."
+  (cl-declare (special youtube-dl-view-item))
+  (plist-get youtube-dl-view-item :url))
+
+(defun youtube-dl-view--stored-p ()
+  "Returns non-nil if currently viewed item is stored at the top of history."
+  (and youtube-dl-view-history
+       (string-equal (plist-get (car youtube-dl-view-history) :url)
+                     (youtube-dl-view--current-url))))
+
 (define-button-type 'youtube-dl-view-link 'action
   (lambda (_button)
-    (cl-declare (special youtube-dl-program youtube-dl-view-current-url))
-    (unless (and youtube-dl-view-history
-                 (string-equal (car youtube-dl-view-history) youtube-dl-view-current-url))
-      (push youtube-dl-view-current-url youtube-dl-view-history))
+    (cl-declare (special youtube-dl-program youtube-dl-view-item))
+    (unless (youtube-dl-view--stored-p)
+      (push youtube-dl-view-item youtube-dl-view-history))
     (let ((url (thing-at-point 'url t)))
       (if (zerop (call-process youtube-dl-program nil nil nil
                                "--ignore-config"
@@ -143,8 +151,7 @@ will be applied."
 
 (define-button-type 'youtube-dl-view-back 'action
   (lambda (_button)
-    (when (and youtube-dl-view-history
-               (string-equal (car youtube-dl-view-history) youtube-dl-view-current-url))
+    (when (youtube-dl-view--stored-p)
       (pop youtube-dl-view-history))
     (unless youtube-dl-view-history
       (error "No more history."))
@@ -162,11 +169,10 @@ will be applied."
 (defun youtube-dl-view-add-w3m-bookmark ()
   "Add currently viewed clip to the w3m bookmarks."
   (interactive)
-  (cl-declare (special youtube-dl-view-current-url))
   (unless (eq major-mode 'youtube-dl-view-mode)
     (error "Not in youtube-dl-view buffer."))
   (require 'w3m-bookmark)
-  (w3m-bookmark-add youtube-dl-view-current-url header-line-format)
+  (w3m-bookmark-add (youtube-dl-view--current-url) header-line-format)
   (message "Bookmark added"))
 
 (defvar youtube-dl-view-mode-map
@@ -187,12 +193,12 @@ will be applied."
   "Timespec matching regexp.")
 
 (cl-defun youtube-dl-view--show-description
-    (text url submitted-p &key title filesize duration)
+    (text url submitted-p &key id title filesize duration)
   "Show a description represented by given text.
 The second argument specifies source URL for reference.
 The third argument indicates whether this URL is already submitted
 for download."
-  (cl-declare (special youtube-dl-view-current-url))
+  (cl-declare (special youtube-dl-view-item))
   (with-current-buffer (get-buffer-create " *youtube-dl view*")
     (youtube-dl-view-mode)
     (let ((window (get-buffer-window))
@@ -282,7 +288,15 @@ for download."
                        :type 'youtube-dl-view-play-start-time))
          (t (make-button (match-beginning 0) (match-end 0)
                          :type 'youtube-dl-view-play-start-time))))
-      (set (make-local-variable 'youtube-dl-view-current-url) url)
+      (set (make-local-variable 'youtube-dl-view-item)
+           (list
+            :index 1
+            :id id
+            :url url
+            :title title
+            :description text
+            :duration duration
+            :filesize filesize))
       (setf (point) (point-min))
       (when window
         (set-window-point window (point-min)))
@@ -294,7 +308,8 @@ for download."
   "Retrieves and shows info from specified URL or, being invoked
 in the download listing, for an item under point. If specified URL
 points to a playlist and it has more than one item, this playlist
-is submitted for download as paused and shown in the listing."
+is submitted for download as paused and shown in the listing.
+The argument can be a plist of clip data as well."
   (interactive (youtube-dl-thing))
   (let* ((submitted-p (youtube-dl-item-p thing))
          (playlist
@@ -310,11 +325,14 @@ is submitted for download as paused and shown in the listing."
           (if playlist
               (car playlist)
             thing))
+         (id
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-id item)
+            (plist-get item :id)))
          (title
           (if (youtube-dl-item-p item)
               (youtube-dl-item-title item)
-            (or (plist-get item :title)
-                (plist-get item :id))))
+            (or (plist-get item :title) id)))
          (filesize
           (if (youtube-dl-item-p item)
               (youtube-dl-item-filesize item)
@@ -338,7 +356,7 @@ is submitted for download as paused and shown in the listing."
       (when (and submitted-p playlist)
         (youtube-dl-item-title-set thing title)
         (let ((name (youtube-dl-item-dest-name thing)))
-          (when (string-match (format "^\\(?:[0-9]+-\\)?\\(%s\\)" (youtube-dl-item-id thing)) name)
+          (when (string-match (format "^\\(?:[0-9]+-\\)?\\(%s\\)" id) name)
             (youtube-dl-item-dest-name-set
              thing (replace-match title nil nil name 1))
             (youtube-dl-redisplay)))
@@ -346,6 +364,7 @@ is submitted for download as paused and shown in the listing."
         (youtube-dl-item-filesize-set thing filesize)
         (youtube-dl-item-duration-set thing duration))
       (youtube-dl-view--show-description text url submitted-p
+                                         :id id
                                          :title title
                                          :filesize filesize
                                          :duration duration))))
