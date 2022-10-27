@@ -931,11 +931,11 @@ active item or at the beginning of buffer if no active item exists."
            (format "%-6.6s %-10.10s %s%s%s%s"
                    (or progress "0.0%")
                    (or total "???")
-                   (if (= failures 0)
+                   (if (zerop failures)
                        ""
                      (propertize (format "[%d] " failures)
                                  'face 'youtube-dl-failure))
-                   (if (= priority 0)
+                   (if (zerop priority)
                        ""
                      (propertize (format "%+d " priority)
                                  'face 'youtube-dl-priority))
