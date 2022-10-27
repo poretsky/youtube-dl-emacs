@@ -1,3 +1,9 @@
+youtube-dl-el (2.6-1bionic1) bionic; urgency=medium
+
+  * Progress display fix.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Thu, 27 Oct 2022 18:13:12 +0300
+
 youtube-dl-el (2.5-1bionic1) bionic; urgency=medium
 
   * Fragments list detection and parsing fix.
