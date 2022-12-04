@@ -1,3 +1,11 @@
+youtube-dl-el (2.7-1xenial1) xenial; urgency=medium
+
+  * More time markup variations.
+  * Correctly show progress for approximate download size.
+  * Request metadata only for playable items.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Sun, 04 Dec 2022 13:16:32 +0300
+
 youtube-dl-el (2.6-1xenial1) xenial; urgency=medium
 
   * Progress display fix.
