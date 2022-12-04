@@ -358,6 +358,7 @@ display purposes anyway."
                      (concat (directory-file-name directory) "/")
                    (concat (directory-file-name youtube-dl-download-directory) "/")))
                (url (youtube-dl-item-url item))
+               (playable-p (youtube-dl-playable-p url))
                (audio-p (youtube-dl-item-audio-p item))
                (audio-format
                 (and audio-p
@@ -379,7 +380,7 @@ display purposes anyway."
                                  (list "--no-mtime"))
                                (when youtube-dl-restrict-filenames
                                  (list "--restrict-filenames"))
-                               (when youtube-dl-include-metadata
+                               (when (and playable-p youtube-dl-include-metadata)
                                  (list "--add-metadata"))
                                (when audio-p
                                  (list "-x"))
