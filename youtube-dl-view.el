@@ -95,10 +95,7 @@ will be applied."
 (define-button-type 'youtube-dl-view-play-start-time 'action
   (lambda (button)
     (youtube-dl-play (youtube-dl-view--current-url)
-                     (or (button-get button 'start-time)
-                         (buffer-substring-no-properties
-                          (button-start button)
-                          (button-end button)))))
+                     (button-get button 'start-time)))
   :supertype 'button)
 
 (define-button-type 'youtube-dl-view-play 'action
@@ -248,7 +245,7 @@ for download."
         (while
             (re-search-forward
              (concat
-              "\\( +\\)"
+              "\\( +\\)\\[?"
               youtube-dl-view-time-spec)
              nil t)
           (replace-match "\n" nil nil nil 1))
@@ -259,17 +256,18 @@ for download."
                    (- (window-body-width) youtube-dl-view-fill-column))))
             (fill-individual-paragraphs start (point-max) nil
                                         (concat
+                                         "\\[?"
                                          youtube-dl-view-time-spec
-                                         " \\|-*[0-9]+\\. \\|.+[ \t\n][^ \t\n]+\\(?:@\\|://\\)"))))
+                                         "]? \\|-*[0-9]+\\. \\|.+[ \t\n][^ \t\n]+\\(?:@\\|://\\)"))))
         (goto-char start))
       (while
           (re-search-forward
            (concat
             "\\([a-zA-Z0-9]@[a-zA-Z0-9]\\)\\|\\(https?://[a-zA-Z0-9]+\\.[a-zA-Z0-9]\\)\\|^\\(?:\\(-*\\([0-9]+\\.\\) .*(\\("
             youtube-dl-view-time-spec
-            "\\))\\)\\|"
+            "\\))\\)\\|\\[?\\("
             youtube-dl-view-time-spec
-            "\\)")
+            "\\)]?\\)")
            nil t)
         (cond
          ((match-string 1)
@@ -287,6 +285,7 @@ for download."
                        'start-time (buffer-substring-no-properties (match-beginning 5) (match-end 5))
                        :type 'youtube-dl-view-play-start-time))
          (t (make-button (match-beginning 0) (match-end 0)
+                         'start-time (buffer-substring-no-properties (match-beginning 6) (match-end 6))
                          :type 'youtube-dl-view-play-start-time))))
       (set (make-local-variable 'youtube-dl-view-item)
            (list
