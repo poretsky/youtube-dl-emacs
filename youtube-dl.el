@@ -296,8 +296,9 @@ Progress lines that straddle output chunks are lost. That's fine
 since this is just used for display purposes."
   (let ((start 0)
         (pair nil))
-    (while (string-match "\\([^ ]+%\\) +of +\\([^ \n]+\\)[ \n]" output start)
-      (setf pair (cons (match-string 1 output) (match-string 2 output))
+    (while (string-match "\\([^ ]+%\\) +of +\\(~?\\) *\\([^ \n]+\\)[ \n]" output start)
+      (setf pair (cons (match-string 1 output)
+                       (concat (match-string 2 output) (match-string 3 output)))
             start (match-end 0)))
     pair))
 
