@@ -456,6 +456,7 @@ as a list of one element suitable for use in `interactive' form."
                                "--ignore-config"
                                "--dump-json"
                                "--flat-playlist"
+                               "--"
                                url))
       (setf (point) (point-min))
       (cl-loop with json-object-type = 'plist
