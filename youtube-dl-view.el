@@ -136,6 +136,7 @@ will be applied."
                                "--ignore-config"
                                "--simulate"
                                "--flat-playlist"
+                               "--"
                                url))
           (youtube-dl-view url)
         (browse-url url))))
