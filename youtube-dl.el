@@ -49,6 +49,7 @@
 (require 'hl-line)
 
 (declare-function youtube-dl-play "youtube-dl-play")
+(declare-function youtube-dl-play-stop "youtube-dl-play")
 (declare-function youtube-dl-view "youtube-dl-view")
 
 ;;;###autoload
@@ -834,6 +835,7 @@ interactively operates on all items."
       (define-key map "L" #'youtube-dl-list-kill-log)
       (define-key map "y" #'youtube-dl-list-yank)
       (define-key map " " #'youtube-dl-play)
+      (define-key map "k" #'youtube-dl-play-stop)
       (define-key map "\r" #'youtube-dl-view)
       (define-key map "Q" #'youtube-dl-quit)
       (define-key map [down] #'youtube-dl-list-next-item)
