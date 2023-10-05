@@ -64,9 +64,22 @@
                  (const "mp4")
                  (const "webm")))
 
+(defvar youtube-dl-play-process nil
+  "Youtube video playback process.")
+
 (defun youtube-dl-play--sentinel (process event)
   "YouTube video playback process events handler."
+  (unless (process-live-p process)
+    (setf youtube-dl-play-process nil))
   (message "Process %s %s" (process-name process) event))
+
+;;;###autoload
+(defun youtube-dl-play-stop ()
+  "Stops currently playing youtube video if any."
+  (interactive)
+  (when (and (processp youtube-dl-play-process)
+             (process-live-p youtube-dl-play-process))
+    (kill-process youtube-dl-play-process)))
 
 ;;;###autoload
 (defun youtube-dl-play (thing &optional start)
@@ -74,6 +87,7 @@
 in the download list, from an item under point. Optional second
 argument, if non-nil, is treated as start time specification string."
   (interactive (youtube-dl-thing))
+  (youtube-dl-play-stop)
   (let* ((url
           (if (youtube-dl-item-p thing)
               (youtube-dl-item-url thing)
@@ -87,6 +101,7 @@ argument, if non-nil, is treated as start time specification string."
                         (when start
                           `("--start" ,start))
                         `(,url)))))
+    (setf youtube-dl-play-process proc)
     (set-process-sentinel proc #'youtube-dl-play--sentinel)))
 
 (provide 'youtube-dl-play)
