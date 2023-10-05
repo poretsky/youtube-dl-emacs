@@ -158,10 +158,12 @@ will be applied."
   :supertype 'button)
 
 (defun youtube-dl-view-quit ()
-  "Clear history and close window."
+  "Clear history and close window. Also stops playback if any."
   (interactive)
   (unless (eq major-mode 'youtube-dl-view-mode)
     (error "Not in youtube-dl-view buffer."))
+  (when (featurep 'youtube-dl-play)
+    (youtube-dl-play-stop))
   (setq youtube-dl-view-history nil)
   (quit-window))
 
