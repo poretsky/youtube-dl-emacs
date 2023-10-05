@@ -822,9 +822,11 @@ interactively operates on all items."
   (youtube-dl-list-priority-modify -1))
 
 (defun youtube-dl-quit ()
-  "Clear downloads queue and quit."
+  "Clear downloads queue and quit. Also stops playback if any."
   (interactive)
   (youtube-dl-list-kill youtube-dl-items)
+  (when (featurep 'youtube-dl-play)
+    (youtube-dl-play-stop))
   (quit-window))
 
 (defvar youtube-dl-list-mode-map
