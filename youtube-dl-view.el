@@ -57,6 +57,7 @@
 (declare-function youtube-dl-item-duration-set "youtube-dl" (item value))
 (declare-function youtube-dl-item-description-set "youtube-dl" (item text))
 (declare-function youtube-dl-play "youtube-dl-play" (url &optional start))
+(declare-function youtube-dl-play-stop "youtube-dl-play")
 (declare-function w3m-bookmark-add "w3m-bookmark" (url &optional title))
 
 ;;;###autoload
@@ -178,6 +179,7 @@ will be applied."
     (prog1 map
       (set-keymap-parent map button-buffer-map)
       (define-key map "a" #'youtube-dl-view-add-w3m-bookmark)
+      (define-key map "k" #'youtube-dl-play-stop)
       (define-key map "q" #'youtube-dl-view-quit)))
   "Keymap for `youtube-dl-view-mode'")
 
