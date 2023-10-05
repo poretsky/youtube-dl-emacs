@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'advice)
 (cl-eval-when (load)
   (require 'youtube-dl)
   (require 'w3m))
@@ -37,6 +38,7 @@
 (declare-function youtube-dl-request-url "youtube-dl" (&optional alternative))
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
 (declare-function youtube-dl-play "youtube-dl-play" (url))
+(declare-function youtube-dl-play-stop "youtube-dl-play")
 (declare-function youtube-dl-view "youtube-dl-view" (url))
 (declare-function w3m-view-this-url "w3m")
 
@@ -190,6 +192,16 @@ Uses `w3m-view-this-url' as a fallback."
                (y-or-n-p "Schedule download? ")))
       (youtube-dl-w3m url))
      (t (call-interactively 'w3m-view-this-url)))))
+
+(cl-loop
+ for f in
+ '(w3m-process-stop w3m-process-shutdown)
+ do
+ (eval
+  `(defadvice ,f (before youtube-dl pre act comp)
+     "Stop youtube video playback if any."
+     (when (featurep 'youtube-dl-play)
+       (youtube-dl-play-stop)))))
 
 (provide 'youtube-dl-w3m)
 
