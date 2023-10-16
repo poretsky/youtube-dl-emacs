@@ -80,6 +80,18 @@ started as paused."
                  (const :tag "No" nil)
                  (const :tag "Ask" t)))
 
+(defconst youtube-dl-w3m-native-youtube-base-url
+  "^https?://\\(?:\\(?:\\(?:www\\|music\\)\\.\\)?youtube\\.com\\|youtu\\.be\\)\\(?:/\\|$\\)"
+  "A regexp that matches all variants of the Youtube URl base
+that can be replaced by the Invidious URL stub.")
+
+(defcustom youtube-dl-w3m-invidious-url "https://yewtu.be/"
+  "Base URL of the Invidious mirror in use.
+All Youtube requests will be redirected to it.
+If it is `nil', the redirection is disabled."
+  :group 'youtube-dl-w3m
+  :type 'string)
+
 (defun youtube-dl-w3m--downloadable-p (url)
   "Test given URL if it is downloadable."
   (cl-declare (special youtube-dl-playable-urls))
@@ -176,7 +188,10 @@ Uses `w3m-view-this-url' as a fallback."
   (let ((url (youtube-dl-w3m--current-anchor)))
     (cond
      ((or current-prefix-arg
-          (not (stringp url)))
+          (not (stringp url))
+          (and youtube-dl-w3m-invidious-url
+               (not (string-match (youtube-dl-w3m--invidious-url-pattern) w3m-current-url))
+               (not (string-match youtube-dl-w3m-native-youtube-base-url w3m-current-url))))
       (call-interactively 'w3m-view-this-url))
      ((and youtube-dl-w3m-auto-play
            (youtube-dl-playable-p url)
@@ -202,6 +217,100 @@ Uses `w3m-view-this-url' as a fallback."
      "Stop youtube video playback if any."
      (when (featurep 'youtube-dl-play)
        (youtube-dl-play-stop)))))
+
+;; Invidious integration:
+
+(defun youtube-dl-w3m--invidious-url-pattern ()
+  "Construct regexp matching Invidious URL stub."
+  (concat "^"
+          (if (string-suffix-p "/" youtube-dl-w3m-invidious-url)
+              (substring youtube-dl-w3m-invidious-url 0 -1)
+            youtube-dl-w3m-invidious-url)
+          "\\(?:/\\|$\\)"))
+
+(defun youtube-dl-w3m-invidious-filter (_url)
+  "Improve invidious pages display."
+  ;; Split multiparagraph links
+  (goto-char (point-min))
+  (while (re-search-forward
+          "<a[ \t\r\n\f]+\\(?:[^>]*[ \t\r\n\f]\\)?href=[^>]+>"
+          nil t)
+    (let ((anchor (match-string 0))
+          (balance nil))
+      (while (and anchor
+                  (re-search-forward
+                   "<\\(?:\\(p\\(?:[ \t\r\n\f][^>]+\\)?\\)\\|/\\(?:\\(p\\)\\|a\\)\\)>"
+                   nil t))
+        (cond
+         ((match-string 1)
+          (if balance
+              (setq balance nil)
+            (replace-match "</a>\\&"))
+          (insert anchor))
+         ((match-string 2)
+          (unless balance
+            (replace-match "</a>\\&")
+            (setq balance t)))
+         (t (setq anchor nil)
+            (when balance
+              (delete-region (match-beginning 0) (match-end 0))))))))
+  ;;Get anchor title or id attribute visible
+  (goto-char (point-min))
+  (while (re-search-forward
+          "<a[ \t\r\n\f]+\\(?:[^>]*[ \t\r\n\f]\\)?href=[^>]+>"
+          nil t)
+    (let ((anchor (match-string 0)))
+      (when (and (looking-at "[ \t\r\n\f]*<")
+                 (or (string-match "[ \t\r\n\f]title=\"\\([^\"]*\\)\"[ \t\r\n\f]" anchor)
+                     (string-match "[ \t\r\n\f]title=\'\\([^\']*\\)\'[ \t\r\n\f]" anchor)
+                     (string-match "[ \t\r\n\f]id=\"\\([^\"]*\\)\"[ \t\r\n\f]" anchor)
+                     (string-match "[ \t\r\n\f]id=\'\\([^\']*\\)\'[ \t\r\n\f]" anchor)))
+        (insert "\n")
+        (insert (match-string 1 anchor))
+        (insert "\n"))))
+  ;; Correct description view
+  (goto-char (point-min))
+  (when (re-search-forward "<div id=\"description-box\">" nil t)
+    ;; Remove unneeded checkbox
+    (let ((box-start (point)))
+      (when (re-search-forward "<input id=\"descexpansionbutton\".*/>" nil t)
+        (delete-region (match-beginning 0) (match-end 0)))
+      (goto-char box-start))
+    (when (re-search-forward "<div id=\"descriptionWrapper\">" nil t)
+      ;; Strings and paragraphs
+      (while (and (re-search-forward "\\($\\)\\|</div>" nil t)
+                  (match-string 1))
+        (if (not (looking-at "\n *$"))
+            (insert "<br/>")
+          (goto-char (match-end 0))
+          (insert "<p/>"))
+        (forward-char)))))
+
+(defadvice w3m-filter (around youtube-dl pre act comp)
+  "Apply invidious filters."
+  (if youtube-dl-w3m-invidious-url
+      (let ((w3m-filter-configuration (cl-copy-list w3m-filter-configuration))
+            (invidious-url (youtube-dl-w3m--invidious-url-pattern)))
+        (cl-pushnew
+         `(t "Invidious pages view improvement" ,invidious-url youtube-dl-w3m-invidious-filter)
+         w3m-filter-configuration)
+        ad-do-it)
+    ad-do-it))
+
+(defadvice w3m-uri-replace (around youtube-dl pre act comp)
+  "Redirect Youtube requests to Invidious."
+  (if youtube-dl-w3m-invidious-url
+      (let ((w3m-uri-replace-alist (cl-copy-list w3m-uri-replace-alist))
+            (invidious-url
+             (if (string-suffix-p "/" youtube-dl-w3m-invidious-url)
+                 youtube-dl-w3m-invidious-url
+               (concat youtube-dl-w3m-invidious-url "/"))))
+        (cl-pushnew
+         `(,youtube-dl-w3m-native-youtube-base-url w3m-pattern-uri-replace ,invidious-url)
+         w3m-uri-replace-alist)
+        ad-do-it)
+    ad-do-it)
+  ad-return-value)
 
 (provide 'youtube-dl-w3m)
 
