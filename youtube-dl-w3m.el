@@ -37,7 +37,7 @@
 (declare-function youtube-dl-request-immediate "youtube-dl")
 (declare-function youtube-dl-request-url "youtube-dl" (&optional alternative))
 (declare-function youtube-dl-playable-p "youtube-dl" (url))
-(declare-function youtube-dl-play "youtube-dl-play" (url))
+(declare-function youtube-dl-play "youtube-dl-play" (url &optional start))
 (declare-function youtube-dl-play-stop "youtube-dl-play")
 (declare-function youtube-dl-view "youtube-dl-view" (url))
 (declare-function w3m-view-this-url "w3m")
@@ -185,14 +185,22 @@ from user suggesting reasonable default."
   "Dispatches link visiting operation depending on the link nature.
 Uses `w3m-view-this-url' as a fallback."
   (interactive)
-  (let ((url (youtube-dl-w3m--current-anchor)))
+  (let ((url (youtube-dl-w3m--current-anchor))
+        (on-invidious-page
+         (and youtube-dl-w3m-invidious-url
+              (string-match (youtube-dl-w3m--invidious-url-pattern) w3m-current-url))))
     (cond
      ((or current-prefix-arg
           (not (stringp url))
           (and youtube-dl-w3m-invidious-url
-               (not (string-match (youtube-dl-w3m--invidious-url-pattern) w3m-current-url))
+               (not on-invidious-page)
                (not (string-match youtube-dl-w3m-native-youtube-base-url w3m-current-url))))
       (call-interactively 'w3m-view-this-url))
+     ((and on-invidious-page
+           (string-match "&t=\\([0-9]+\\)" url))
+      (youtube-dl-play
+       (replace-match "" nil t url)
+       (match-string 1 url)))
      ((and youtube-dl-w3m-auto-play
            (youtube-dl-playable-p url)
            (or (eq youtube-dl-w3m-auto-play 'always)
