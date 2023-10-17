@@ -283,16 +283,25 @@ Uses `w3m-view-this-url' as a fallback."
     (let ((box-start (point)))
       (when (re-search-forward "<input id=\"descexpansionbutton\".*/>" nil t)
         (delete-region (match-beginning 0) (match-end 0)))
-      (goto-char box-start))
-    (when (re-search-forward "<div id=\"descriptionWrapper\">" nil t)
-      ;; Strings and paragraphs
+      (goto-char box-start)))
+  (when (re-search-forward "<div id=\"descriptionWrapper\">" nil t)
+    ;; Strings and paragraphs
+    (let ((description-start (point)))
       (while (and (re-search-forward "\\($\\)\\|</div>" nil t)
                   (match-string 1))
         (if (not (looking-at "\n *$"))
             (insert "<br/>")
           (goto-char (match-end 0))
           (insert "<p/>"))
-        (forward-char)))))
+        (forward-char))
+      (goto-char description-start)))
+  ;; Time marks list
+  (let ((time-mark "^\\(\\(.*<a \\(?:[^>]* \\)data-jump-time=.+\\)\\(?:<br/>\\)?\\)\\($\\|</div>\\)"))
+    (when (re-search-forward time-mark nil t)
+      (replace-match "<ul>\n<li>\\2" nil nil nil 1)
+      (while (re-search-forward time-mark nil t)
+        (replace-match "<li>\\2" nil nil nil 1))
+      (insert "\n</ul>"))))
 
 (defadvice w3m-filter (around youtube-dl pre act comp)
   "Apply invidious filters."
