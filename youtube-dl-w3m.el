@@ -81,7 +81,7 @@ started as paused."
                  (const :tag "Ask" t)))
 
 (defconst youtube-dl-w3m-native-youtube-base-url
-  "^https?://\\(?:\\(?:\\(?:www\\|music\\)\\.\\)?youtube\\.com\\|youtu\\.be\\)\\(?:/\\|$\\)"
+  "https?://\\(?:\\(?:\\(?:www\\|music\\)\\.\\)?youtube\\.com\\|youtu\\.be\\)\\(?:/\\|$\\)"
   "A regexp that matches all variants of the Youtube URl base
 that can be replaced by the Invidious URL stub.")
 
@@ -188,13 +188,14 @@ Uses `w3m-view-this-url' as a fallback."
   (let ((url (youtube-dl-w3m--current-anchor))
         (on-invidious-page
          (and youtube-dl-w3m-invidious-url
-              (string-match (youtube-dl-w3m--invidious-url-pattern) w3m-current-url))))
+              (string-match (youtube-dl-w3m--invidious-url-pattern) w3m-current-url)))
+        (youtube-url (concat "^" youtube-dl-w3m-native-youtube-base-url)))
     (cond
      ((or current-prefix-arg
           (not (stringp url))
           (and youtube-dl-w3m-invidious-url
                (not on-invidious-page)
-               (not (string-match youtube-dl-w3m-native-youtube-base-url w3m-current-url))))
+               (not (string-match youtube-url w3m-current-url))))
       (call-interactively 'w3m-view-this-url))
      ((and on-invidious-page
            (string-match "&t=\\([0-9]+\\)" url))
@@ -202,7 +203,7 @@ Uses `w3m-view-this-url' as a fallback."
        (replace-match "" nil t url)
        (match-string 1 url)))
      ((and on-invidious-page
-           (string-match youtube-dl-w3m-native-youtube-base-url url))
+           (string-match youtube-url url))
       (youtube-dl-w3m-menu-popup))
      ((and youtube-dl-w3m-auto-play
            (youtube-dl-playable-p url)
@@ -279,8 +280,16 @@ Uses `w3m-view-this-url' as a fallback."
         (insert "\n")
         (insert (match-string 1 anchor))
         (insert "\n"))))
-  ;; Correct description view
   (goto-char (point-min))
+  ;; Correct clip links
+  (let ((clip-url
+         (concat "\""
+                 youtube-dl-w3m-native-youtube-base-url
+                 "watch[^\"]+\\(&list=[^&\"]+\\)[&\"]")))
+    (while (re-search-forward clip-url nil t)
+      (replace-match "" nil t nil 1)))
+  (goto-char (point-min))
+  ;; Correct description view
   (when (re-search-forward "<div id=\"description-box\">" nil t)
     ;; Remove unneeded checkbox
     (let ((box-start (point)))
@@ -324,9 +333,10 @@ Uses `w3m-view-this-url' as a fallback."
             (invidious-url
              (if (string-suffix-p "/" youtube-dl-w3m-invidious-url)
                  youtube-dl-w3m-invidious-url
-               (concat youtube-dl-w3m-invidious-url "/"))))
+               (concat youtube-dl-w3m-invidious-url "/")))
+            (youtube-url (concat "^" youtube-dl-w3m-native-youtube-base-url)))
         (cl-pushnew
-         `(,youtube-dl-w3m-native-youtube-base-url w3m-pattern-uri-replace ,invidious-url)
+         `(,youtube-url w3m-pattern-uri-replace ,invidious-url)
          w3m-uri-replace-alist)
         ad-do-it)
     ad-do-it)
