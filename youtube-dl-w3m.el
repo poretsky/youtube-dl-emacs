@@ -343,33 +343,36 @@ Uses `w3m-view-this-url' as a fallback."
     ad-do-it)
   ad-return-value)
 
+(defun youtube-dl-w3m--invidious-check ()
+  "Signal error when Invidious address is not specified."
+  (unless youtube-dl-w3m-invidious-url
+    (error "Invidious address is not specified")))
+
 ;;;###autoload
 (defun youtube-dl-w3m-invidious ()
   "Visit Invidious."
   (interactive)
-  (if youtube-dl-w3m-invidious-url
-      (w3m-goto-url youtube-dl-w3m-invidious-url)
-    (error "Invidious address is not specified")))
+  (youtube-dl-w3m--invidious-check)
+  (w3m-goto-url youtube-dl-w3m-invidious-url))
 
 ;;;###autoload
 (defun youtube-dl-w3m-invidious-search ()
   "Search Youtube via Invidious."
   (interactive)
   (cl-declare (special w3m-search-engine-alist))
+  (youtube-dl-w3m--invidious-check)
   (require 'w3m-search)
-  (if youtube-dl-w3m-invidious-url
-      (let ((w3m-search-default-engine "youtube")
-            (w3m-search-engine-alist (cl-copy-list w3m-search-engine-alist))
-            (url
-             (concat youtube-dl-w3m-invidious-url
-                     (if (string-suffix-p "/" youtube-dl-w3m-invidious-url) "" "/")
-                     "search?q=%s"))
-            (current-prefix-arg nil))
-        (cl-pushnew
-         `(,w3m-search-default-engine ,url utf-8)
-         w3m-search-engine-alist)
-        (call-interactively 'w3m-search))
-    (error "Invidious address is not specified")))
+  (let ((w3m-search-default-engine "youtube")
+        (w3m-search-engine-alist (cl-copy-list w3m-search-engine-alist))
+        (url
+         (concat youtube-dl-w3m-invidious-url
+                 (if (string-suffix-p "/" youtube-dl-w3m-invidious-url) "" "/")
+                 "search?q=%s"))
+        (current-prefix-arg nil))
+    (cl-pushnew
+     `(,w3m-search-default-engine ,url utf-8)
+     w3m-search-engine-alist)
+    (call-interactively 'w3m-search)))
 
 (provide 'youtube-dl-w3m)
 
