@@ -41,6 +41,7 @@
 (declare-function youtube-dl-play-stop "youtube-dl-play")
 (declare-function youtube-dl-view "youtube-dl-view" (url))
 (declare-function w3m-view-this-url "w3m")
+(declare-function w3m-goto-url "w3m" (url))
 
 ;;;###autoload
 (defgroup youtube-dl-w3m ()
@@ -341,6 +342,14 @@ Uses `w3m-view-this-url' as a fallback."
         ad-do-it)
     ad-do-it)
   ad-return-value)
+
+;;;###autoload
+(defun youtube-dl-w3m-invidious ()
+  "Visit Invidious."
+  (interactive)
+  (if youtube-dl-w3m-invidious-url
+      (w3m-goto-url youtube-dl-w3m-invidious-url)
+    (error "Invidious address is not specified")))
 
 (provide 'youtube-dl-w3m)
 

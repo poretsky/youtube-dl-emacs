@@ -53,4 +53,5 @@
 (eval-after-load 'w3m
   '(progn
      (define-key w3m-mode-map "y" #'youtube-dl-w3m-menu-popup)
+     (define-key w3m-mode-map "Y" #'youtube-dl-w3m-invidious)
      (define-key w3m-mode-map "\r" #'youtube-dl-w3m-dispatch)))
