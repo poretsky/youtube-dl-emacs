@@ -201,6 +201,9 @@ Uses `w3m-view-this-url' as a fallback."
       (youtube-dl-play
        (replace-match "" nil t url)
        (match-string 1 url)))
+     ((and on-invidious-page
+           (string-match youtube-dl-w3m-native-youtube-base-url url))
+      (youtube-dl-w3m-menu-popup))
      ((and youtube-dl-w3m-auto-play
            (youtube-dl-playable-p url)
            (or (eq youtube-dl-w3m-auto-play 'always)
