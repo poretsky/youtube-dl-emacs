@@ -23,8 +23,16 @@ And then add the following line to your Emacs startup file:
 
 ## Usage
 
+Since [youtube-dl](https://github.com/ytdl-org/youtube-dl) itself is
+somewhat conservative, it is recommended to consider using its
+actively developed fork [yt-dlp](https://github.com/yt-dlp/yt-dlp)
+instead. The `youtube-dl` executable name doesn't matter for this
+package, it is customizable, but [mpv media player](https://mpv.io/)
+requires just `youtube-dl`. Thus, if some other fork is used in fact,
+the respective alias should be created anyway.
+
 The following actions are available from the `tools / youtube-dl`
-submenu in the general Emacs menu bar:
+submenu in the general Emacs menu bar when this package is installed:
 
 - **Customize** -- Open youtube-dl customization group.
 - **Submit download** -- Submit download from a URL provided by user
@@ -65,6 +73,7 @@ The following actions are available in this buffer via hot keys:
 - <kbd>y</kbd> -- Yank URL from the item under point into kill ring.
 - <kbd>SPC</kbd> -- Start playback for the item under point.
 - <kbd>RET</kbd> -- Open video description for the item under point.
+- <kbd>k</kbd> -- Stop playback if any.
 - <kbd>q</kbd> -- Close the window.
 - <kbd>Q</kbd> -- Stop download process, clear queue and quit.
 - <kbd>d</kbd> -- Delete the item under point from the download queue.
@@ -93,6 +102,17 @@ When video description view is requested for a URL that actually
 points to a playlist, this playlist is submitted for download as
 paused and presented to the user for further manipulations.
 
+### Viewing video description
+
+Video description if requested is shown in a specially dedicated
+buffer. Along with the descriptive information this buffer may contain
+some action buttons and clickable links and following keystrokes are
+available there:
+
+- <kbd>a</kbd> -- Save clip URL as a w3m bookmark.
+- <kbd>k</kbd> -- Stop playback if any.
+- <kbd>q</kbd> -- Quit view and close the window.
+
 ## Integration with w3m web browser
 
 An additional keystroke <kbd>y</kbd> in `w3m-mode` pops up the menu of
@@ -109,6 +129,27 @@ When youtube-dl playback or download submission is invoked on an
 anchor, the anchor URL is used. Otherwise the URL is requested from
 the user. After download submission the download control buffer pops
 up with pointer positioned on the newly added item.
+
+## Cooperation with Invidious
+
+Web interface of Youtube in practice doesn't fit for browsing with
+w3m. But there is an opensource alternative frontend called
+[Invidious](https://invidious.io/) that can be used instead. You can
+[install it locally](https://docs.invidious.io/installation/) if you
+prefer or just use one of the
+[publicly available instances](https://docs.invidious.io/instances/). In
+either case you should specify the address of the chosen instance in
+the customization option `youtube-dl-w3m-invidious-url`. And that is
+the only thing necessary to take advantage of the Invidious frontend.
+
+The following additional keystrokes are available in `w3m-mode` when
+this package is installed:
+
+- <kbd>Y</kbd> -- Youtube search.
+- <kbd>i</kbd> -- Visit homepage of the Invidious instance in use.
+
+This package also takes care of proper redirection of the Youtube
+requests and Invidious pages preparation for better view in W3m.
 
 ## Limitations
 
