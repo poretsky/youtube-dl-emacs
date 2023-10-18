@@ -82,7 +82,7 @@ started as paused."
                  (const :tag "Ask" t)))
 
 (defconst youtube-dl-w3m-native-youtube-base-url
-  "https?://\\(?:\\(?:\\(?:www\\|music\\)\\.\\)?youtube\\.com\\|youtu\\.be\\)\\(?:/\\|$\\)"
+  "https?://\\(?:\\(?:\\(?:www\\|music\\)\\.\\)?youtube\\.com\\|youtu\\.be\\)"
   "A regexp that matches all variants of the Youtube URl base
 that can be replaced by the Invidious URL stub.")
 
@@ -190,7 +190,7 @@ Uses `w3m-view-this-url' as a fallback."
         (on-invidious-page
          (and youtube-dl-w3m-invidious-url
               (string-match (youtube-dl-w3m--invidious-url-pattern) w3m-current-url)))
-        (youtube-url (concat "^" youtube-dl-w3m-native-youtube-base-url)))
+        (youtube-url (concat "^" youtube-dl-w3m-native-youtube-base-url "\\(?:/\\|$\\)")))
     (cond
      ((or current-prefix-arg
           (not (stringp url))
@@ -286,7 +286,7 @@ Uses `w3m-view-this-url' as a fallback."
   (let ((clip-url
          (concat "\""
                  youtube-dl-w3m-native-youtube-base-url
-                 "watch[^\"]+\\(&list=[^&\"]+\\)[&\"]")))
+                 "/watch[^\"]+\\(&list=[^&\"]+\\)[&\"]")))
     (while (re-search-forward clip-url nil t)
       (replace-match "" nil t nil 1)))
   (goto-char (point-min))
@@ -335,7 +335,7 @@ Uses `w3m-view-this-url' as a fallback."
              (if (string-suffix-p "/" youtube-dl-w3m-invidious-url)
                  youtube-dl-w3m-invidious-url
                (concat youtube-dl-w3m-invidious-url "/")))
-            (youtube-url (concat "^" youtube-dl-w3m-native-youtube-base-url)))
+            (youtube-url (concat "^" youtube-dl-w3m-native-youtube-base-url "\\(?:/\\|$\\)")))
         (cl-pushnew
          `(,youtube-url w3m-pattern-uri-replace ,invidious-url)
          w3m-uri-replace-alist)
