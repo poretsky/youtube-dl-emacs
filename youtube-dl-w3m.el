@@ -362,16 +362,13 @@ Uses `w3m-view-this-url' as a fallback."
   (cl-declare (special w3m-search-engine-alist))
   (youtube-dl-w3m--invidious-check)
   (require 'w3m-search)
-  (let ((w3m-search-default-engine "youtube")
-        (w3m-search-engine-alist (cl-copy-list w3m-search-engine-alist))
-        (url
-         (concat youtube-dl-w3m-invidious-url
-                 (if (string-suffix-p "/" youtube-dl-w3m-invidious-url) "" "/")
-                 "search?q=%s"))
-        (current-prefix-arg nil))
-    (cl-pushnew
-     `(,w3m-search-default-engine ,url utf-8)
-     w3m-search-engine-alist)
+  (let* ((w3m-search-default-engine "youtube")
+         (url
+          (concat youtube-dl-w3m-invidious-url
+                  (if (string-suffix-p "/" youtube-dl-w3m-invidious-url) "" "/")
+                  "search?q=%s"))
+         (w3m-search-engine-alist `((,w3m-search-default-engine ,url utf-8)))
+         (current-prefix-arg nil))
     (call-interactively 'w3m-search)))
 
 (provide 'youtube-dl-w3m)
