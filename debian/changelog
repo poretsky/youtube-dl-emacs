@@ -1,3 +1,16 @@
+youtube-dl-el (3.0-1focal1) focal; urgency=medium
+
+  * Prevented double start of playback.
+  * Key stroke in youtube-dl buffers to stop currently running playback.
+  * Stop currently running playback when closing youtube-dl buffers.
+  * When stopping w3m process also cancel youtube playback if any.
+  * More tolerable rules for tracklists parsing.
+  * More general pattern for native Youtube addresses.
+  * Don't use (point) as a generalized variable.
+  * Invidious integration.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Wed, 18 Oct 2023 23:50:58 +0300
+
 youtube-dl-el (2.7-1focal1) focal; urgency=medium
 
   * More time markup variations.
