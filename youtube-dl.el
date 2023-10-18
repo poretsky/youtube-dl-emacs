@@ -459,7 +459,7 @@ as a list of one element suitable for use in `interactive' form."
                                "--flat-playlist"
                                "--"
                                url))
-      (setf (point) (point-min))
+      (goto-char (point-min))
       (cl-loop with json-object-type = 'plist
                for index upfrom 1
                for video = (ignore-errors (json-read))
@@ -660,7 +660,7 @@ then playlist will be reversed.
         (let ((save-point (point))
               (window (get-buffer-window)))
           (youtube-dl--fill-listing)
-          (setf (point) save-point)
+          (goto-char save-point)
           (when window
             (set-window-point window save-point))
           (when hl-line-mode

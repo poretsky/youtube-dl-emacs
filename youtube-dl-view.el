@@ -301,7 +301,7 @@ for download."
             :description text
             :duration duration
             :filesize filesize))
-      (setf (point) (point-min))
+      (goto-char (point-min))
       (when window
         (set-window-point window (point-min)))
       (let ((split-width-threshold nil))
