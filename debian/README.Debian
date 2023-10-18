@@ -11,8 +11,27 @@ online.
 Usage
 -----
 
+Since youtube-dl itself is somewhat conservative, it is recommended to
+consider using its actively developed fork yt-dlp instead. In Debian
+it can be installed as snap package by command:
+
+sudo snap install yt-dlp
+
+The youtube-dl executable name doesn't matter for this package, it
+is customizable, but mpv media player requires just
+`youtube-dl'. Thus, if some other fork is used in fact, the respective
+alias should be created anyway. For yt-dlp snap package it can be
+accomplished by creating shell script consisting of the following two
+lines:
+
+#!/bin/sh
+exec /snap/bin/yt-dlp $@
+
+This script should be placed in a directory mentioned in the
+environment variable `PATH'.
+
 The following actions are available from the tools / youtube-dl submenu in the
-general Emacs menu bar:
+general Emacs menu bar when this package is installed:
 
   • Customize -- Open youtube-dl customization group.
   • Submit download -- Submit download from a URL provided by user adding it to
@@ -53,6 +72,7 @@ The following actions are available in this buffer via hot keys:
   • `y' -- Yank URL from the item under point into kill ring.
   • `SPC' -- Start playback for the item under point.
   • `RET' -- Open video description for the item under point.
+  • `k' -- Stop playback if any.
   • `q' -- Close the window.
   • `Q' -- Stop download process, clear queue and quit.
   • `d' -- Delete the item under point from the download queue.
@@ -83,6 +103,19 @@ playlist, this playlist is submitted for download as paused and presented to
 the user for further manipulations.
 
 
+Viewing video description
+-------------------------
+
+Video description if requested is shown in a specially dedicated
+buffer. Along with the descriptive information this buffer may contain
+some action buttons and clickable links and following keystrokes are
+available there:
+
+  • `a' -- Save clip URL as a w3m bookmark.
+  • `k' -- Stop playback if any.
+  • `q' -- Quit view and close the window.
+
+
 Integration with w3m web browser
 --------------------------------
 
@@ -97,4 +130,29 @@ anchor URL is used. Otherwise the URL is requested from the user. After
 download submission the download control buffer pops up with pointer positioned
 on the newly added item.
 
- -- Igor B. Poretsky <poretsky@mlbox.ru>  Fri, 10 Jun 2022 07:50:29 +0300
+
+Cooperation with Invidious
+--------------------------
+
+Web interface of Youtube in practice doesn't fit for browsing with
+w3m. But there is an opensource alternative frontend called
+Invidious that can be used instead. You can install it locally if you
+prefer or just use one of the publicly available instances. In
+either case you should specify the address of the chosen instance in
+the customization option `youtube-dl-w3m-invidious-url'. And that is
+the only thing necessary to take advantage of the Invidious frontend.
+
+The following additional keystrokes are available in `w3m-mode' when
+this package is installed:
+
+  • `Y' -- Youtube search.
+  • `i' -- Visit homepage of the Invidious instance in use.
+
+This package also takes care of proper redirection of the Youtube
+requests and Invidious pages preparation for better view in W3m.
+
+See https://docs.invidious.io/ to get more info about Invidious
+itself.
+
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Wed, 18 Oct 2023 23:50:58 +0300
