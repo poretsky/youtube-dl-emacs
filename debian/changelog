@@ -1,3 +1,9 @@
+youtube-dl-el (3.1-1bionic1) bionic; urgency=medium
+
+  * Youtube search fix.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Thu, 19 Oct 2023 19:03:02 +0300
+
 youtube-dl-el (3.0-1bionic1) bionic; urgency=medium
 
   * Prevented double start of playback.
