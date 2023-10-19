@@ -359,7 +359,7 @@ Uses `w3m-view-this-url' as a fallback."
 (defun youtube-dl-w3m-invidious-search ()
   "Search Youtube via Invidious."
   (interactive)
-  (cl-declare (special w3m-search-engine-alist))
+  (cl-declare (special w3m-search-default-engine w3m-search-engine-alist))
   (youtube-dl-w3m--invidious-check)
   (require 'w3m-search)
   (let* ((w3m-search-default-engine "youtube")
