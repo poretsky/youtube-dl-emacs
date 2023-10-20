@@ -1,3 +1,9 @@
+youtube-dl-el (3.2-1bullseye1) bullseye; urgency=medium
+
+  * Time marks detection fix.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Fri, 20 Oct 2023 17:21:01 +0300
+
 youtube-dl-el (3.1-1bullseye1) bullseye; urgency=medium
 
   * Youtube search fix.
