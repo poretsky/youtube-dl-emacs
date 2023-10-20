@@ -309,7 +309,7 @@ Uses `w3m-view-this-url' as a fallback."
         (forward-char))
       (goto-char description-start)))
   ;; Time marks list
-  (let ((time-mark "^\\(\\(.*<a \\(?:[^>]* \\)data-jump-time=.+\\)\\(?:<br/>\\)?\\)\\($\\|</div>\\)"))
+  (let ((time-mark "\\(\\(.*<a \\(?:[^>]* \\)data-jump-time=.+\\)\\(?:<br/>\\)?\\)\\($\\|</div>\\)"))
     (when (re-search-forward time-mark nil t)
       (replace-match "<ul>\n<li>\\2" nil nil nil 1)
       (while (re-search-forward time-mark nil t)
