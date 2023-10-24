@@ -330,14 +330,24 @@ Uses `w3m-view-this-url' as a fallback."
 (defadvice w3m-uri-replace (around youtube-dl pre act comp)
   "Redirect Youtube requests to Invidious."
   (if youtube-dl-w3m-invidious-url
-      (let ((w3m-uri-replace-alist (cl-copy-list w3m-uri-replace-alist))
-            (invidious-url
-             (if (string-suffix-p "/" youtube-dl-w3m-invidious-url)
-                 youtube-dl-w3m-invidious-url
-               (concat youtube-dl-w3m-invidious-url "/")))
-            (youtube-url (concat "^" youtube-dl-w3m-native-youtube-base-url "\\(?:/\\|$\\)")))
+      (let* ((w3m-uri-replace-alist (cl-copy-list w3m-uri-replace-alist))
+             (invidious-url
+              (if (string-suffix-p "/" youtube-dl-w3m-invidious-url)
+                  youtube-dl-w3m-invidious-url
+                (concat youtube-dl-w3m-invidious-url "/")))
+             (youtube-url (concat "^" youtube-dl-w3m-native-youtube-base-url "\\(?:/\\|$\\)"))
+             (youtube-clip "^https?://youtu\\.be/\\([-_a-zA-Z0-9]\\{11\\}\\)")
+             (youtube-clip-xt (concat youtube-clip "\\?"))
+             (invidious-clip (concat invidious-url "watch?v=\\1"))
+             (invidious-clip-xt (concat invidious-clip "&")))
         (cl-pushnew
          `(,youtube-url w3m-pattern-uri-replace ,invidious-url)
+         w3m-uri-replace-alist)
+        (cl-pushnew
+         `(,youtube-clip w3m-pattern-uri-replace ,invidious-clip)
+         w3m-uri-replace-alist)
+        (cl-pushnew
+         `(,youtube-clip-xt w3m-pattern-uri-replace ,invidious-clip-xt)
          w3m-uri-replace-alist)
         ad-do-it)
     ad-do-it)
