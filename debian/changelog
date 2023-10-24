@@ -1,3 +1,10 @@
+youtube-dl-el (3.3-1xenial1) xenial; urgency=medium
+
+  * More specific Invidious redirection.
+  * Load W3m extension module together with the browser itself.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Tue, 24 Oct 2023 19:03:50 +0300
+
 youtube-dl-el (3.2-1xenial1) xenial; urgency=medium
 
   * Time marks detection fix.
