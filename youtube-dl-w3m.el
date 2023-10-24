@@ -175,13 +175,11 @@ from user suggesting reasonable default."
     menu)
   "Actions menu for use in w3m.")
 
-;;;###autoload
 (defun youtube-dl-w3m-menu-popup ()
   "Pops up the actions menu."
   (interactive)
   (tmm-prompt youtube-dl-w3m-menu))
 
-;;;###autoload
 (defun youtube-dl-w3m-dispatch ()
   "Dispatches link visiting operation depending on the link nature.
 Uses `w3m-view-this-url' as a fallback."
@@ -358,14 +356,12 @@ Uses `w3m-view-this-url' as a fallback."
   (unless youtube-dl-w3m-invidious-url
     (error "Invidious address is not specified")))
 
-;;;###autoload
 (defun youtube-dl-w3m-invidious ()
   "Visit Invidious."
   (interactive)
   (youtube-dl-w3m--invidious-check)
   (w3m-goto-url youtube-dl-w3m-invidious-url))
 
-;;;###autoload
 (defun youtube-dl-w3m-invidious-search ()
   "Search Youtube via Invidious."
   (interactive)
@@ -380,6 +376,17 @@ Uses `w3m-view-this-url' as a fallback."
          (w3m-search-engine-alist `((,w3m-search-default-engine ,url utf-8)))
          (current-prefix-arg nil))
     (call-interactively 'w3m-search)))
+
+;; Bindings:
+
+;;;###autoload
+(defun youtube-dl-w3m-setup ()
+  "Set up extra key bindings."
+  (cl-declare (special w3m-mode-map))
+  (define-key w3m-mode-map "y" #'youtube-dl-w3m-menu-popup)
+  (define-key w3m-mode-map "Y" #'youtube-dl-w3m-invidious-search)
+  (define-key w3m-mode-map "i" #'youtube-dl-w3m-invidious)
+  (define-key w3m-mode-map "\r" #'youtube-dl-w3m-dispatch))
 
 (provide 'youtube-dl-w3m)
 
