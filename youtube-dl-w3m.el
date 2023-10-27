@@ -221,12 +221,13 @@ Uses `w3m-view-this-url' as a fallback."
 
 (cl-loop
  for f in
- '(w3m-process-stop w3m-process-shutdown)
+ '(w3m-process-stop w3m-quit)
  do
  (eval
   `(defadvice ,f (before youtube-dl pre act comp)
      "Stop youtube video playback if any."
-     (when (featurep 'youtube-dl-play)
+     (when (and (featurep 'youtube-dl-play)
+                (called-interactively-p 'any))
        (youtube-dl-play-stop)))))
 
 ;; Invidious integration:
