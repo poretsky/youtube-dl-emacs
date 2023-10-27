@@ -69,7 +69,8 @@
 
 (defun youtube-dl-play--sentinel (process event)
   "YouTube video playback process events handler."
-  (unless (process-live-p process)
+  (when (and (eq process youtube-dl-play-process)
+             (not (process-live-p process)))
     (setf youtube-dl-play-process nil))
   (message "Process %s %s" (process-name process) event))
 
