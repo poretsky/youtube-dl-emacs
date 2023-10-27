@@ -74,11 +74,15 @@
   (message "Process %s %s" (process-name process) event))
 
 ;;;###autoload
-(defun youtube-dl-play-stop ()
-  "Stops currently playing youtube video if any."
-  (interactive)
+(defun youtube-dl-play-stop (&optional force)
+  "Stops currently playing youtube video if any.
+When optional argument is `non-nil' don't ask a confirmation.
+Being called interactively never asks a confirmation."
+  (interactive "p")
   (when (and (processp youtube-dl-play-process)
-             (process-live-p youtube-dl-play-process))
+             (process-live-p youtube-dl-play-process)
+             (or force
+                 (y-or-n-p "Stop current playback? ")))
     (kill-process youtube-dl-play-process)))
 
 ;;;###autoload
@@ -87,7 +91,7 @@
 in the download list, from an item under point. Optional second
 argument, if non-nil, is treated as start time specification string."
   (interactive (youtube-dl-thing))
-  (youtube-dl-play-stop)
+  (youtube-dl-play-stop t)
   (let* ((url
           (if (youtube-dl-item-p thing)
               (youtube-dl-item-url thing)
