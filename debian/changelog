@@ -1,3 +1,10 @@
+youtube-dl-el (3.5-1jammy1) jammy; urgency=medium
+
+  * Save original Youtube references in bookmarks instead of Invidious
+    ones.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Mon, 30 Oct 2023 10:46:09 +0300
+
 youtube-dl-el (3.4-1jammy1) jammy; urgency=medium
 
   * Stop video playback from w3m only on explicit exit or process stop.
