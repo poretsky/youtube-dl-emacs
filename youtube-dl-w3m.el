@@ -352,6 +352,17 @@ Uses `w3m-view-this-url' as a fallback."
     ad-do-it)
   ad-return-value)
 
+(defadvice w3m-bookmark-add (around youtube-dl pre act comp)
+  "Replace Invidious URL and title with the corresponding Youtube ones."
+  (let ((url (ad-get-arg 0))
+        (title (ad-get-arg 1)))
+    (when (and youtube-dl-w3m-invidious-url
+               (string-match (youtube-dl-w3m--invidious-url-pattern) url))
+      (ad-set-arg 0 (replace-match "https://www.youtube.com/" nil t url))
+      (when (and title (string-match " +- +Invidious$" title))
+        (ad-set-arg 1 (replace-match "" nil t title))))
+    ad-do-it))
+
 (defun youtube-dl-w3m--invidious-check ()
   "Signal error when Invidious address is not specified."
   (unless youtube-dl-w3m-invidious-url
