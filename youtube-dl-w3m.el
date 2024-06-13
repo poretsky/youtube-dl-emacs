@@ -197,6 +197,7 @@ Uses `w3m-view-this-url' as a fallback."
                (not (string-match youtube-url w3m-current-url))))
       (call-interactively 'w3m-view-this-url))
      ((and on-invidious-page
+           (string-prefix-p (substring w3m-current-url 0 (string-match "\\(?:&\\|$\\)" w3m-current-url)) url)
            (string-match "&t=\\([0-9]+\\)" url))
       (youtube-dl-play
        (replace-match "" nil t url)
