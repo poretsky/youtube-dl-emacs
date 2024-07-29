@@ -160,6 +160,12 @@ Any other value means to ask for each queueing item."
   :group 'youtube-dl
   :type 'boolean)
 
+(defcustom youtube-dl-proxy nil
+  "Use the specified HTTP/HTTPS/SOCKS proxy. To enable SOCKS proxy,
+specify a proper scheme, e.g. socks5://user:pass@127.0.0.1:1080/."
+  :group 'youtube-dl
+  :type '(choice (const nil) string))
+
 (defgroup youtube-dl-faces ()
   "Download listing display faces."
   :group 'youtube-dl)
@@ -391,6 +397,8 @@ display purposes anyway."
                                  `("--audio-quality" ,audio-quality))
                                (when slow-p
                                  `("--rate-limit" ,youtube-dl-slow-rate))
+                               (when youtube-dl-proxy
+                                 `("--proxy" ,youtube-dl-proxy))
                                (when destination
                                  `("--output" ,destination))
                                `("--" ,url))))))

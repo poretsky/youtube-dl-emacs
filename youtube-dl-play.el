@@ -92,6 +92,7 @@ Being called interactively never asks a confirmation."
 in the download list, from an item under point. Optional second
 argument, if non-nil, is treated as start time specification string."
   (interactive (youtube-dl-thing))
+  (cl-declare (special youtube-dl-proxy))
   (youtube-dl-play-stop t)
   (let* ((url
           (if (youtube-dl-item-p thing)
@@ -103,6 +104,8 @@ argument, if non-nil, is treated as start time specification string."
                  (nconc (list youtube-dl-play-fullscreen)
                         (when youtube-dl-play-format
                           `("--ytdl-format" ,youtube-dl-play-format))
+                        (when youtube-dl-proxy
+                          `("--ytdl-raw-options" ,(format "proxy=\"%s\"" youtube-dl-proxy)))
                         (when start
                           `("--start" ,start))
                         `(,url)))))
