@@ -91,7 +91,7 @@ that can be replaced by the Invidious URL stub.")
 All Youtube requests will be redirected to it.
 If it is `nil', the redirection is disabled."
   :group 'youtube-dl-w3m
-  :type 'string)
+  :type '(choice (const nil) string))
 
 (defun youtube-dl-w3m--downloadable-p (url)
   "Test given URL if it is downloadable."
