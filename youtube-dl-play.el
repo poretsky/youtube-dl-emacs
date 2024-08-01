@@ -103,11 +103,11 @@ argument, if non-nil, is treated as start time specification string."
                  "--profile=pseudo-gui" "--ytdl"
                  (nconc (list youtube-dl-play-fullscreen)
                         (when youtube-dl-play-format
-                          `("--ytdl-format" ,youtube-dl-play-format))
+                          (list (concat "--ytdl-format=" youtube-dl-play-format)))
                         (when youtube-dl-proxy
-                          `("--ytdl-raw-options" ,(format "proxy=\"%s\"" youtube-dl-proxy)))
+                          (list (format "--ytdl-raw-options=proxy=\"%s\"" youtube-dl-proxy)))
                         (when start
-                          `("--start" ,start))
+                          (list (concat "--start=" start)))
                         `(,url)))))
     (setf youtube-dl-play-process proc)
     (set-process-sentinel proc #'youtube-dl-play--sentinel)))
