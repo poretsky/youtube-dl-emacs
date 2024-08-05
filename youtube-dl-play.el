@@ -56,13 +56,21 @@
                  (const :tag "no" "--no-fs")))
 
 (defcustom youtube-dl-play-format nil
-  "Playback format. It can be specified explicitly when default does not fit."
+  "Playback format. It can be specified explicitly when default does not fit.
+Some of the formats my actually be unavailable for a particular clip."
   :group 'youtube-dl-play
   :type '(choice (const :tag "default" nil)
-                 (const "best")
-                 (const "worst")
+                 (const :tag "best" "bestvideo+bestaudio")
+                 (const :tag "worst" "worstvideo+worstaudio")
                  (const "mp4")
-                 (const "webm")))
+                 (const "flv")
+                 (const "3gp")
+                 (const "webm")
+                 (const :tag "aac (audio only" "aac")
+                 (const :tag "m4a (audio only)" "m4a")
+                 (const :tag "mp3 (audio only)" "mp3")
+                 (const :tag "ogg (audio only)" "ogg")
+                 (const :tag "wav (audio only)" "wav")))
 
 (defvar youtube-dl-play-process nil
   "Youtube video playback process.")
