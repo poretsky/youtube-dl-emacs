@@ -50,11 +50,13 @@
 (declare-function youtube-dl-item-title "youtube-dl" (item))
 (declare-function youtube-dl-item-filesize "youtube-dl" (item))
 (declare-function youtube-dl-item-duration "youtube-dl" (item))
+(declare-function youtube-dl-item-timestamp "youtube-dl" (item))
 (declare-function youtube-dl-item-description "youtube-dl" (item))
 (declare-function youtube-dl-item-title-set "youtube-dl" (item title))
 (declare-function youtube-dl-item-dest-name-set "youtube-dl" (item name))
 (declare-function youtube-dl-item-filesize-set "youtube-dl" (item value))
 (declare-function youtube-dl-item-duration-set "youtube-dl" (item value))
+(declare-function youtube-dl-item-timestamp-set "youtube-dl" (item value))
 (declare-function youtube-dl-item-description-set "youtube-dl" (item text))
 (declare-function youtube-dl-play "youtube-dl-play" (url &optional start))
 (declare-function youtube-dl-play-stop "youtube-dl-play")
@@ -195,7 +197,7 @@ will be applied."
   "Timespec matching regexp.")
 
 (cl-defun youtube-dl-view--show-description
-    (text url submitted-p &key id title filesize duration)
+    (text url submitted-p &key id title filesize duration timestamp)
   "Show a description represented by given text.
 The second argument specifies source URL for reference.
 The third argument indicates whether this URL is already submitted
@@ -219,6 +221,12 @@ for download."
         (insert (propertize "Duration" 'face 'youtube-dl-view-header)
                 "  "
                 (propertize (format-time-string "%T" (seconds-to-time duration) t)
+                            'face 'youtube-dl-view-header-value)
+                "\n"))
+      (when timestamp
+        (insert (propertize "Date" 'face 'youtube-dl-view-header)
+                "      "
+                (propertize (format-time-string "%c" (seconds-to-time timestamp))
                             'face 'youtube-dl-view-header-value)
                 "\n"))
       (unless (bobp)
@@ -345,6 +353,10 @@ The argument can be a plist of clip data as well."
           (if (youtube-dl-item-p item)
               (youtube-dl-item-duration item)
             (plist-get item :duration)))
+         (timestamp
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-timestamp item)
+            (plist-get item :timestamp)))
          (text
           (or (if (youtube-dl-item-p item)
                   (youtube-dl-item-description item)
@@ -366,12 +378,14 @@ The argument can be a plist of clip data as well."
             (youtube-dl-redisplay)))
         (youtube-dl-item-description-set thing text)
         (youtube-dl-item-filesize-set thing filesize)
-        (youtube-dl-item-duration-set thing duration))
+        (youtube-dl-item-duration-set thing duration)
+        (youtube-dl-item-timestamp-set thing timestamp))
       (youtube-dl-view--show-description text url submitted-p
                                          :id id
                                          :title title
                                          :filesize filesize
-                                         :duration duration))))
+                                         :duration duration
+                                         :timestamp timestamp))))
 
 (provide 'youtube-dl-view)
 
