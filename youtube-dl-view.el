@@ -129,6 +129,15 @@ will be applied."
     (error "Not in youtube-dl-view buffer."))
   (youtube-dl-play (youtube-dl-view--current-url) start-time))
 
+(defun youtube-dl-view-yank-current-url ()
+  "Yank current clip URL into kill-ring."
+  (interactive)
+  (unless (eq major-mode 'youtube-dl-view-mode)
+    (error "Not in youtube-dl-view buffer."))
+  (let ((url (youtube-dl-view--current-url)))
+    (kill-new url)
+    (message "Yanked %s" url)))
+
 (defun youtube-dl-view--stored-p ()
   "Returns non-nil if currently viewed item is stored at the top of history."
   (and youtube-dl-view-history
@@ -188,6 +197,7 @@ will be applied."
   (let ((map (make-sparse-keymap)))
     (prog1 map
       (set-keymap-parent map button-buffer-map)
+      (define-key map "y" #'youtube-dl-view-yank-current-url)
       (define-key map "a" #'youtube-dl-view-add-w3m-bookmark)
       (define-key map " " #'youtube-dl-view-play-current-url)
       (define-key map "k" #'youtube-dl-play-stop)
