@@ -97,13 +97,12 @@ will be applied."
 
 (define-button-type 'youtube-dl-view-play-start-time 'action
   (lambda (button)
-    (youtube-dl-play (youtube-dl-view--current-url)
-                     (button-get button 'start-time)))
+    (youtube-dl-view-play-current-url (button-get button 'start-time)))
   :supertype 'button)
 
 (define-button-type 'youtube-dl-view-play 'action
   (lambda (_button)
-    (youtube-dl-play (youtube-dl-view--current-url)))
+    (youtube-dl-view-play-current-url))
   :supertype 'button)
 
 (define-button-type 'youtube-dl-view-download 'action
@@ -122,6 +121,13 @@ will be applied."
   "Return currently viewed item url."
   (cl-declare (special youtube-dl-view-item))
   (plist-get youtube-dl-view-item :url))
+
+(defun youtube-dl-view-play-current-url (&optional start-time)
+  "Play current url from specified start time."
+  (interactive)
+  (unless (eq major-mode 'youtube-dl-view-mode)
+    (error "Not in youtube-dl-view buffer."))
+  (youtube-dl-play (youtube-dl-view--current-url) start-time))
 
 (defun youtube-dl-view--stored-p ()
   "Returns non-nil if currently viewed item is stored at the top of history."
@@ -183,6 +189,7 @@ will be applied."
     (prog1 map
       (set-keymap-parent map button-buffer-map)
       (define-key map "a" #'youtube-dl-view-add-w3m-bookmark)
+      (define-key map " " #'youtube-dl-view-play-current-url)
       (define-key map "k" #'youtube-dl-play-stop)
       (define-key map "q" #'youtube-dl-view-quit)))
   "Keymap for `youtube-dl-view-mode'")
