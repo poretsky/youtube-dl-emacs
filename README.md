@@ -109,6 +109,7 @@ buffer. Along with the descriptive information this buffer may contain
 some action buttons and clickable links and following keystrokes are
 available there:
 
+- <kbd>y</kbd> -- Yank clip URL into kill ring.
 - <kbd>a</kbd> -- Save clip URL as a w3m bookmark.
 - <kbd>SPC</kbd> -- Start clip playback.
 - <kbd>k</kbd> -- Stop playback if any.
