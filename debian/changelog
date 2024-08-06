@@ -1,3 +1,17 @@
+youtube-dl-el (3.6-0bionic1) bionic; urgency=medium
+
+  * Prevented special treatment of external links even though they
+    contain start time specification.
+  * Invidious redirection option implementation fix.
+  * Implemented proxy utilization facility.
+  * More common options format for mpv.
+  * Extended playback format specification.
+  * Added publishing date information to a clip description view.
+  * Additional keyboard shortcuts in clip description view: start
+    playback and yank clip URL into kill-ring.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Tue, 06 Aug 2024 23:03:49 +0300
+
 youtube-dl-el (3.5-1bionic1) bionic; urgency=medium
 
   * Save original Youtube references in bookmarks instead of Invidious
