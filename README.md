@@ -110,6 +110,7 @@ some action buttons and clickable links and following keystrokes are
 available there:
 
 - <kbd>a</kbd> -- Save clip URL as a w3m bookmark.
+- <kbd>SPC</kbd> -- Start clip playback.
 - <kbd>k</kbd> -- Stop playback if any.
 - <kbd>q</kbd> -- Quit view and close the window.
 
