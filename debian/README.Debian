@@ -111,7 +111,9 @@ buffer. Along with the descriptive information this buffer may contain
 some action buttons and clickable links and following keystrokes are
 available there:
 
+  • `y' -- Yank clip URL into kill ring.
   • `a' -- Save clip URL as a w3m bookmark.
+  • `SPC' -- Start clip playback.
   • `k' -- Stop playback if any.
   • `q' -- Quit view and close the window.
 
