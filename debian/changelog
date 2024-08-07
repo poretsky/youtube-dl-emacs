@@ -1,3 +1,9 @@
+youtube-dl-el (3.6-0xenial2) xenial; urgency=medium
+
+  * Synchronized documentation.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Wed, 07 Aug 2024 06:27:27 +0300
+
 youtube-dl-el (3.6-0xenial1) xenial; urgency=medium
 
   * Prevented special treatment of external links even though they
