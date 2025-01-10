@@ -12,6 +12,11 @@ simulate: youtube-dl.elc
 clean:
 	rm -f *.elc youtube-dl-loaddefs.el simulation.db simulation.db.tmp
 
+youtube-dl.elc: youtube-dl.el youtube-dl-loaddefs.el
+youtube-dl-play.elc: youtube-dl-play.el youtube-dl.elc
+youtube-dl-view.elc: youtube-dl-view.el youtube-dl.elc
+youtube-dl-w3m.elc: youtube-dl-w3m.el youtube-dl.elc
+
 .SUFFIXES: .el .elc
 .el.elc:
-	$(EMACS) -batch -Q -f batch-byte-compile $<
+	$(EMACS) -l youtube-dl-loaddefs.el --eval '(push "." load-path)' -batch -Q -f batch-byte-compile $<

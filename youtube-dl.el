@@ -48,10 +48,6 @@
 (require 'cl-lib)
 (require 'hl-line)
 
-(declare-function youtube-dl-play "youtube-dl-play")
-(declare-function youtube-dl-play-stop "youtube-dl-play")
-(declare-function youtube-dl-view "youtube-dl-view")
-
 ;;;###autoload
 (defgroup youtube-dl
   '((youtube-dl-play custom-group)

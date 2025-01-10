@@ -28,18 +28,10 @@
 
 (require 'cl-lib)
 (require 'advice)
+(require 'youtube-dl)
 (cl-eval-when (load)
-  (require 'youtube-dl)
   (require 'w3m))
 
-(declare-function youtube-dl "youtube-dl" (url &rest args))
-(declare-function youtube-dl-list "youtube-dl" (&optional position))
-(declare-function youtube-dl-request-immediate "youtube-dl")
-(declare-function youtube-dl-request-url "youtube-dl" (&optional alternative))
-(declare-function youtube-dl-playable-p "youtube-dl" (url))
-(declare-function youtube-dl-play "youtube-dl-play" (url &optional start))
-(declare-function youtube-dl-play-stop "youtube-dl-play")
-(declare-function youtube-dl-view "youtube-dl-view" (url))
 (declare-function w3m-view-this-url "w3m")
 (declare-function w3m-goto-url "w3m" (url))
 
@@ -95,7 +87,6 @@ If it is `nil', the redirection is disabled."
 
 (defun youtube-dl-w3m--downloadable-p (url)
   "Test given URL if it is downloadable."
-  (cl-declare (special youtube-dl-playable-urls))
   (let ((youtube-dl-playable-urls
          (nconc (cl-copy-list youtube-dl-playable-urls)
                 youtube-dl-w3m-downloadable-urls)))
