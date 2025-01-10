@@ -30,13 +30,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-(cl-eval-when (load)
-  (require 'youtube-dl))
-
-(declare-function youtube-dl-thing "youtube-dl")
-(declare-function youtube-dl-item-p "youtube-dl" (item))
-(declare-function youtube-dl-item-url "youtube-dl" (item))
+(require 'youtube-dl)
 
 ;;;###autoload
 (defgroup youtube-dl-play ()
@@ -100,7 +94,6 @@ Being called interactively never asks a confirmation."
 in the download list, from an item under point. Optional second
 argument, if non-nil, is treated as start time specification string."
   (interactive (youtube-dl-thing))
-  (cl-declare (special youtube-dl-proxy))
   (youtube-dl-play-stop t)
   (let* ((url
           (if (youtube-dl-item-p thing)

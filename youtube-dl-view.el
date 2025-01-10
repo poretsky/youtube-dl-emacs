@@ -33,33 +33,8 @@
 
 (require 'cl-lib)
 (require 'button)
-(cl-eval-when (load)
-  (require 'youtube-dl))
+(require 'youtube-dl)
 
-(declare-function youtube-dl "youtube-dl" (url &rest args))
-(declare-function youtube-dl-submit "youtube-dl" (videos &rest args))
-(declare-function youtube-dl-playable-p "youtube-dl" (url))
-(declare-function youtube-dl-thing "youtube-dl")
-(declare-function youtube-dl-request-immediate "youtube-dl")
-(declare-function youtube-dl-redisplay "youtube-dl")
-(declare-function youtube-dl-playlist-list "youtube-dl" (url))
-(declare-function youtube-dl-item-p "youtube-dl" (item))
-(declare-function youtube-dl-item-id "youtube-dl" (item))
-(declare-function youtube-dl-item-url "youtube-dl" (item))
-(declare-function youtube-dl-item-dest-name "youtube-dl" (item))
-(declare-function youtube-dl-item-title "youtube-dl" (item))
-(declare-function youtube-dl-item-filesize "youtube-dl" (item))
-(declare-function youtube-dl-item-duration "youtube-dl" (item))
-(declare-function youtube-dl-item-timestamp "youtube-dl" (item))
-(declare-function youtube-dl-item-description "youtube-dl" (item))
-(declare-function youtube-dl-item-title-set "youtube-dl" (item title))
-(declare-function youtube-dl-item-dest-name-set "youtube-dl" (item name))
-(declare-function youtube-dl-item-filesize-set "youtube-dl" (item value))
-(declare-function youtube-dl-item-duration-set "youtube-dl" (item value))
-(declare-function youtube-dl-item-timestamp-set "youtube-dl" (item value))
-(declare-function youtube-dl-item-description-set "youtube-dl" (item text))
-(declare-function youtube-dl-play "youtube-dl-play" (url &optional start))
-(declare-function youtube-dl-play-stop "youtube-dl-play")
 (declare-function w3m-bookmark-add "w3m-bookmark" (url &optional title))
 
 ;;;###autoload
@@ -146,7 +121,6 @@ will be applied."
 
 (define-button-type 'youtube-dl-view-link 'action
   (lambda (_button)
-    (cl-declare (special youtube-dl-program youtube-dl-view-item))
     (unless (youtube-dl-view--stored-p)
       (push youtube-dl-view-item youtube-dl-view-history))
     (let ((url (thing-at-point 'url t)))
