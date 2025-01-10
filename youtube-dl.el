@@ -47,6 +47,7 @@
 (require 'json)
 (require 'cl-lib)
 (require 'hl-line)
+(require 'custom)
 
 ;;;###autoload
 (defgroup youtube-dl

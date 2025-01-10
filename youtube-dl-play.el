@@ -30,6 +30,7 @@
 
 ;;; Code:
 
+(require 'custom)
 (require 'youtube-dl)
 
 ;;;###autoload
