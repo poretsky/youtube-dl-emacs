@@ -28,6 +28,7 @@
 
 (require 'cl-lib)
 (require 'advice)
+(require 'custom)
 (require 'youtube-dl)
 (cl-eval-when (load)
   (require 'w3m))

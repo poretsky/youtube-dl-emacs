@@ -33,6 +33,7 @@
 
 (require 'cl-lib)
 (require 'button)
+(require 'custom)
 (require 'youtube-dl)
 
 (declare-function w3m-bookmark-add "w3m-bookmark" (url &optional title))
