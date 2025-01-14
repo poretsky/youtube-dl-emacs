@@ -1,3 +1,12 @@
+youtube-dl-el (3.7-0jammy1) jammy; urgency=medium
+
+  * Added views and likes amount information to a clip description view.
+  * Byte compilation improvements.
+  * Debian package dependency fix.
+  * Removed redundant Debian patches.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Tue, 14 Jan 2025 07:34:23 +0300
+
 youtube-dl-el (3.6-0jammy2) jammy; urgency=medium
 
   * Synchronized documentation.
