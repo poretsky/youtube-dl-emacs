@@ -222,6 +222,8 @@ specify a proper scheme, e.g. socks5://user:pass@127.0.0.1:1080/."
   filesize     ; Declared file size (number or nil)
   duration     ; Declared duration (number or nil)
   timestamp    ; Publishing date timestamp (number or nil)
+  views        ; Count of views (number or nil)
+  likes        ; Count of likes (number or nil)
   description  ; Item description cache (string or nil)
   progress     ; Current download progress (string or nil)
   total        ; Total download size (string or nil)
@@ -249,6 +251,14 @@ specify a proper scheme, e.g. socks5://user:pass@127.0.0.1:1080/."
 (defun youtube-dl-item-timestamp-set (item value)
   "Set timestamp value for specified item."
   (setf (youtube-dl-item-timestamp item) value))
+
+(defun youtube-dl-item-views-set (item value)
+  "Set views value for specified item."
+  (setf (youtube-dl-item-views item) value))
+
+(defun youtube-dl-item-likes-set (item value)
+  "Set likes value for specified item."
+  (setf (youtube-dl-item-likes item) value))
 
 (defun youtube-dl-item-description-set (item text)
   "Set description text for specified item."
@@ -484,6 +494,8 @@ as a list of one element suitable for use in `interactive' form."
                              :filesize     (plist-get video :filesize)
                              :duration     (plist-get video :duration)
                              :timestamp    (plist-get video :timestamp)
+                             :views        (plist-get video :view_count)
+                             :likes        (plist-get video :like_count)
                              :title        (plist-get video :title))))))
 
 (defun youtube-dl-playlist-list (url)

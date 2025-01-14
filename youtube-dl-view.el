@@ -189,7 +189,7 @@ will be applied."
   "Timespec matching regexp.")
 
 (cl-defun youtube-dl-view--show-description
-    (text url submitted-p &key id title filesize duration timestamp)
+    (text url submitted-p &key id title filesize duration timestamp views likes)
   "Show a description represented by given text.
 The second argument specifies source URL for reference.
 The third argument indicates whether this URL is already submitted
@@ -220,6 +220,16 @@ for download."
                 "      "
                 (propertize (format-time-string "%c" (seconds-to-time timestamp))
                             'face 'youtube-dl-view-header-value)
+                "\n"))
+      (when views
+        (insert (propertize "Views" 'face 'youtube-dl-view-header)
+                "     "
+                (propertize (format "%d" views) 'face 'youtube-dl-view-header-value)
+                "\n"))
+      (when likes
+        (insert (propertize "Likes" 'face 'youtube-dl-view-header)
+                "     "
+                (propertize (format "%d" likes) 'face 'youtube-dl-view-header-value)
                 "\n"))
       (unless (bobp)
         (insert "\n"))
@@ -349,6 +359,14 @@ The argument can be a plist of clip data as well."
           (if (youtube-dl-item-p item)
               (youtube-dl-item-timestamp item)
             (plist-get item :timestamp)))
+         (views
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-views item)
+            (plist-get item :views)))
+         (likes
+          (if (youtube-dl-item-p item)
+              (youtube-dl-item-likes item)
+            (plist-get item :likes)))
          (text
           (or (if (youtube-dl-item-p item)
                   (youtube-dl-item-description item)
@@ -371,13 +389,17 @@ The argument can be a plist of clip data as well."
         (youtube-dl-item-description-set thing text)
         (youtube-dl-item-filesize-set thing filesize)
         (youtube-dl-item-duration-set thing duration)
-        (youtube-dl-item-timestamp-set thing timestamp))
+        (youtube-dl-item-timestamp-set thing timestamp)
+        (youtube-dl-item-views-set thing views)
+        (youtube-dl-item-likes-set thing likes))
       (youtube-dl-view--show-description text url submitted-p
                                          :id id
                                          :title title
                                          :filesize filesize
                                          :duration duration
-                                         :timestamp timestamp))))
+                                         :timestamp timestamp
+                                         :views views
+                                         :likes likes))))
 
 (provide 'youtube-dl-view)
 
