@@ -1,3 +1,10 @@
+youtube-dl-el (3.7-0focal1) focal; urgency=medium
+
+  * Added views and likes amount information to a clip description view.
+  * Byte compilation improvements.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Tue, 14 Jan 2025 07:34:23 +0300
+
 youtube-dl-el (3.6-0focal2) focal; urgency=medium
 
   * Synchronized documentation.
