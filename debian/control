@@ -8,7 +8,7 @@ Homepage: https://github.com/poretsky/youtube-dl-emacs
 
 Package: youtube-dl-el
 Architecture: all
-Depends: emacs | emacsen, youtube-dl, ${misc:Depends}
+Depends: emacs | emacsen, youtube-dl | yt-dlp, ${misc:Depends}
 Recommends: mpv
 Suggests: w3m-el
 Description: Emacs interface for youtube-dl
