@@ -163,6 +163,26 @@ specify a proper scheme, e.g. socks5://user:pass@127.0.0.1:1080/."
   :group 'youtube-dl
   :type '(choice (const nil) string))
 
+(defcustom youtube-dl-cookies nil
+  "Specify Netscape formatted file to read cookies from and dump cookie jar in."
+  :group 'youtube-dl
+  :type '(choice (const nil) string))
+
+(defcustom youtube-dl-cookies-from-browser nil
+  "The name of the browser to load cookies from."
+  :group 'youtube-dl
+  :type '(radio
+          (const :tag "none" nil)
+          (const "brave")
+          (const "chrome")
+          (const "chromium")
+          (const "edge")
+          (const "firefox")
+          (const "opera")
+          (const "safari")
+          (const "vivaldi")
+          (const "whale")))
+
 (defgroup youtube-dl-faces ()
   "Download listing display faces."
   :group 'youtube-dl)
@@ -411,6 +431,10 @@ display purposes anyway."
                                  `("--rate-limit" ,youtube-dl-slow-rate))
                                (when youtube-dl-proxy
                                  `("--proxy" ,youtube-dl-proxy))
+                               (when youtube-dl-cookies
+                                 `("--cookies" ,youtube-dl-cookies))
+                               (when youtube-dl-cookies-from-browser
+                                 `("--cookies-from-browser" ,youtube-dl-cookies-from-browser))
                                (when destination
                                  `("--output" ,destination))
                                `("--" ,url))))))
@@ -473,12 +497,16 @@ as a list of one element suitable for use in `interactive' form."
   "For each video, return one plist with :index, :id,
 :url, :playlist, :playlist-url, :title, and :description."
   (with-temp-buffer
-    (when (zerop (call-process youtube-dl-program nil '(t nil) nil
+    (when (zerop (apply #'call-process youtube-dl-program nil '(t nil) nil
                                "--ignore-config"
                                "--dump-json"
                                "--flat-playlist"
-                               "--"
-                               url))
+                               (nconc
+                                (when youtube-dl-cookies
+                                  `("--cookies" ,youtube-dl-cookies))
+                                (when youtube-dl-cookies-from-browser
+                                  `("--cookies-from-browser" ,youtube-dl-cookies-from-browser))
+                                `("--" ,url))))
       (goto-char (point-min))
       (cl-loop with json-object-type = 'plist
                for index upfrom 1
