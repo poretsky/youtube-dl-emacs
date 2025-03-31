@@ -77,6 +77,23 @@ Some of the formats my actually be unavailable for a particular clip."
     (setf youtube-dl-play-process nil))
   (message "Process %s %s" (process-name process) event))
 
+(defun youtube-dl-play--extra-options ()
+  "Form extra options string for."
+  (let ((extra-options nil))
+    (when youtube-dl-proxy
+      (setq extra-options (format "proxy=\"%s\"" youtube-dl-proxy)))
+    (when youtube-dl-cookies
+      (setq extra-options
+            (if extra-options
+                (format "%s,cookies=%s" extra-options youtube-dl-cookies)
+              (format "cookies=%s" youtube-dl-cookies))))
+    (when youtube-dl-cookies-from-browser
+      (setq extra-options
+            (if extra-options
+                (format "%s,cookies-from-browser=%s" extra-options youtube-dl-cookies-from-browser)
+              (format "cookies-from-browser=%s" youtube-dl-cookies-from-browser))))
+    extra-options))
+
 ;;;###autoload
 (defun youtube-dl-play-stop (&optional force)
   "Stops currently playing youtube video if any.
@@ -100,14 +117,15 @@ argument, if non-nil, is treated as start time specification string."
           (if (youtube-dl-item-p thing)
               (youtube-dl-item-url thing)
             thing))
+         (extra-options (youtube-dl-play--extra-options))
          (proc
           (apply #'start-process "mpv" nil youtube-dl-play-program
                  "--profile=pseudo-gui" "--ytdl"
                  (nconc (list youtube-dl-play-fullscreen)
                         (when youtube-dl-play-format
                           (list (concat "--ytdl-format=" youtube-dl-play-format)))
-                        (when youtube-dl-proxy
-                          (list (format "--ytdl-raw-options=proxy=\"%s\"" youtube-dl-proxy)))
+                        (when extra-options
+                          (list (format "--ytdl-raw-options=%s" extra-options)))
                         (when start
                           (list (concat "--start=" start)))
                         `(,url)))))
