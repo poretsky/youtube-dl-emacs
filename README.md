@@ -153,6 +153,14 @@ this package is installed:
 This package also takes care of proper redirection of the Youtube
 requests and Invidious pages preparation for better view in W3m.
 
+## Authorization via cookies
+
+Sometimes Youtube can cease to serve anonymous requests requiring the
+user to be authorized. The simplest way to overcome the situation is
+to get authorization visiting Youtube with a browser and then use
+`youtube-dl-cookies-from-browser` customization option to share
+the obtained cookies.
+
 ## Limitations
 
 To display the size and progress, this package relies on a specific
