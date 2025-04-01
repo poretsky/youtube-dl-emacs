@@ -498,17 +498,17 @@ as a list of one element suitable for use in `interactive' form."
 :url, :playlist, :playlist-url, :title, and :description."
   (with-temp-buffer
     (when (zerop (apply #'call-process youtube-dl-program nil '(t nil) nil
-                               "--ignore-config"
-                               "--dump-json"
-                               "--flat-playlist"
-                               (nconc
-                                (when youtube-dl-proxy
-                                  `("--proxy" ,youtube-dl-proxy))
-                                (when youtube-dl-cookies
-                                  `("--cookies" ,youtube-dl-cookies))
-                                (when youtube-dl-cookies-from-browser
-                                  `("--cookies-from-browser" ,youtube-dl-cookies-from-browser))
-                                `("--" ,url))))
+                        "--ignore-config"
+                        "--dump-json"
+                        "--flat-playlist"
+                        (nconc
+                         (when youtube-dl-proxy
+                           `("--proxy" ,youtube-dl-proxy))
+                         (when youtube-dl-cookies
+                           `("--cookies" ,youtube-dl-cookies))
+                         (when youtube-dl-cookies-from-browser
+                           `("--cookies-from-browser" ,youtube-dl-cookies-from-browser))
+                         `("--" ,url))))
       (goto-char (point-min))
       (cl-loop with json-object-type = 'plist
                for index upfrom 1
