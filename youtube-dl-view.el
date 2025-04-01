@@ -125,12 +125,18 @@ will be applied."
     (unless (youtube-dl-view--stored-p)
       (push youtube-dl-view-item youtube-dl-view-history))
     (let ((url (thing-at-point 'url t)))
-      (if (zerop (call-process youtube-dl-program nil nil nil
-                               "--ignore-config"
-                               "--simulate"
-                               "--flat-playlist"
-                               "--"
-                               url))
+      (if (zerop (apply #'call-process youtube-dl-program nil nil nil
+                        "--ignore-config"
+                        "--simulate"
+                        "--flat-playlist"
+                        (nconc
+                         (when youtube-dl-proxy
+                           `("--proxy" ,youtube-dl-proxy))
+                         (when youtube-dl-cookies
+                           `("--cookies" ,youtube-dl-cookies))
+                         (when youtube-dl-cookies-from-browser
+                           `("--cookies-from-browser" ,youtube-dl-cookies-from-browser))
+                         `("--" ,url))))
           (youtube-dl-view url)
         (browse-url url))))
   :supertype 'button)
