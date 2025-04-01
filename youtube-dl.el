@@ -502,6 +502,8 @@ as a list of one element suitable for use in `interactive' form."
                                "--dump-json"
                                "--flat-playlist"
                                (nconc
+                                (when youtube-dl-proxy
+                                  `("--proxy" ,youtube-dl-proxy))
                                 (when youtube-dl-cookies
                                   `("--cookies" ,youtube-dl-cookies))
                                 (when youtube-dl-cookies-from-browser
