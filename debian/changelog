@@ -1,3 +1,10 @@
+youtube-dl-el (3.9-0focal1) focal; urgency=medium
+
+  * Don't omit proxy when fetching playlist.
+  * Respect cookies and proxy options when processing secondary links.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Tue, 01 Apr 2025 06:10:56 +0300
+
 youtube-dl-el (3.8-0focal1) focal; urgency=medium
 
   * Authorization facility via cookies.
