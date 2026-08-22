@@ -4,7 +4,7 @@ EMACS = emacs
 all: youtube-dl-loaddefs.el youtube-dl.elc youtube-dl-play.elc youtube-dl-view.elc youtube-dl-w3m.elc
 
 youtube-dl-loaddefs.el: youtube-dl.el youtube-dl-play.el youtube-dl-view.el youtube-dl-w3m.el
-	$(EMACS) -batch -Q --script make-loaddefs.el $@ $^
+	$(EMACS) -batch -Q --script make-loaddefs.el $@
 
 simulate: youtube-dl.elc
 	$(EMACS) -Q -L . -l tests/youtube-dl-simulate.el

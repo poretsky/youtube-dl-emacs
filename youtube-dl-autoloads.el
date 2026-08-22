@@ -52,3 +52,9 @@
 ;; Key bindings for w3m:
 (eval-after-load 'w3m
   '(youtube-dl-w3m-setup))
+
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; no-native-compile: t
+;; End:
