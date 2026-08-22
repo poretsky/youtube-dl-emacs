@@ -1,0 +1,5 @@
+youtube-dl-el (3.10-0resolute1) resolute; urgency=medium
+
+  * Packaged for Ubuntu Resolute.
+
+ -- Igor B. Poretsky <poretsky@mlbox.ru>  Sat, 22 Aug 2026 21:02:47 +0300
