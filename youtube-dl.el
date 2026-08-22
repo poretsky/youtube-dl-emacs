@@ -78,7 +78,7 @@ by the option `youtube-dl-download-directory'."
   :group 'youtube-dl
   :type 'string)
 
-(defcustom youtube-dl-program "youtube-dl"
+(defcustom youtube-dl-program "yt-dlp"
   "The name of the program invoked for downloading YouTube videos."
   :group 'youtube-dl
   :type 'string)
